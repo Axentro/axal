@@ -1,6 +1,6 @@
 module Axal::AST
   class Expression
-    getter value : Expression? | String? | Float32 | Float64 | Int32 | Int64
+    getter value : Expression? | String? | Float32 | Float64 | Int32 | Int64 | Bool
 
     def initialize(@value = nil)
     end

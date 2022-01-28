@@ -4,7 +4,7 @@ module Axal::AST
       super
     end
 
-    def ==(other)
+    def ==(other : Expression)
       self.class == other.class && value == other.value
     end
 

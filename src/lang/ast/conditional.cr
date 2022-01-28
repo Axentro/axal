@@ -1,13 +1,13 @@
 module Axal::AST
   class Conditional < Expression
-    getter condition : String?
-    getter when_true : String?
-    getter when_false : String?
+    property condition : Expression?
+    property when_true : Block?
+    property when_false : Block?
 
     def initialize(@condition = nil, @when_true = nil, @when_false = nil)
     end
 
-    def ==(other)
+    def ==(other : Expression)
       children == other.children
     end
 

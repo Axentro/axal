@@ -13,7 +13,7 @@ describe Lexer do
         parser = Parser.new(tokens_from_source("var_binding_ok_1.axal"))
         parser.parse
 
-        pp parser.ast
+        parser.ast.should eq(expected_program)
       end
     end
   end

@@ -1,15 +1,15 @@
 module Axal::AST
   class UnaryOperator < Expression
-    getter operator : String
-    getter operand : String?
+    getter operator : TokenKind
+    property operand : Expression?
 
     def initialize(@operator, @operand = nil)
       @operator = operator
       @operand = operand
     end
 
-    def ==(other)
-      @operator == other.operator && @children == other.children
+    def ==(other : UnaryOperator)
+      @operator == other.operator && children == other.children
     end
 
     def children

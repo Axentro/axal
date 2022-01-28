@@ -8,7 +8,7 @@ module Axal::AST
     def initialize(@operator, @left = nil, @right = nil)
     end
 
-    def ==(other)
+    def ==(other : BinaryOperator)
       operator == other.operator && children == other.children
     end
 

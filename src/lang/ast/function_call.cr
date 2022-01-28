@@ -12,8 +12,8 @@ class FunctionCall < Expression
       name.name
     end
   
-    def ==(other)
-      @children == other.children
+    def ==(other : Expression)
+      children == other.children
     end
   
     def children

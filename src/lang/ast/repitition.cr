@@ -1,12 +1,12 @@
 module Axal::AST
   class Repetition < Expression
-    getter condition : String?
-    getter block : String?
+    property condition : Expression?
+    property block : Block?
 
     def initialize(@condition = nil, @block = nil)
     end
 
-    def ==(other)
+    def ==(other : Expression)
       children == other.children
     end
 

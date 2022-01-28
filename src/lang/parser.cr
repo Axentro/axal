@@ -4,7 +4,7 @@ module Axal
     getter next_p : Int32
     getter ast : AST::Program
     getter errors : Array(Exception) = [] of Exception
- 
+
     UNARY_OPERATORS  = [TokenKind::EXCLAMATION, TokenKind::HYPHEN]
     BINARY_OPERATORS = [
       TokenKind::PLUS, TokenKind::HYPHEN, TokenKind::ASTERISK,
@@ -49,8 +49,8 @@ module Axal
       @ast
     end
 
-    def build_token(kind : TokenKind, lexeme = nil)
-      Token.new(kind, lexeme, nil, nil)
+    def build_token(kind : TokenKind, lexeme, location)
+      Token.new(kind, lexeme, nil, location)
     end
 
     def pending_tokens?
@@ -67,12 +67,12 @@ module Axal
       t
     end
 
-    def consume_if_nxt_is(expected)
-      if nxt.kind == expected.kind
+    def consume_if_nxt_is(expected_kind)
+      if nxt.kind == expected_kind
         consume
         true
       else
-        unexpected_token_error(expected)
+        unexpected_token_error(expected_kind)
         false
       end
     end
@@ -109,26 +109,13 @@ module Axal
       errors << Error::Syntax::UnrecognizedToken.new(current)
     end
 
-    def unexpected_token_error(expected = nil)
-      errors << Error::Syntax::UnexpectedToken.new(current, nxt, expected)
+    def unexpected_token_error(expected_kind = nil)
+      errors << Error::Syntax::UnexpectedToken.new(current, nxt, expected_kind)
     end
 
     def check_syntax_compliance(ast_node)
       return if ast_node.expects?(nxt)
       unexpected_token_error
-    end
-
-    def determine_parsing_function
-      if [TokenKind::RETURN, TokenKind::IDENTIFIER, TokenKind::NUMBER, TokenKind::STRING, TokenKind::TRUE,
-        TokenKind::FALSE, TokenKind::NIL, TokenKind::FN, TokenKind::IF, TokenKind::WHILE].includes?(current.kind)
-        "parse_#{current.kind}"
-      elsif current.kind == TokenKind::LEFT_PAREN
-        :parse_grouped_expr
-      elsif [TokenKind::NEW_LINE, TokenKind::EOF].includes?(current.kind)
-        :parse_terminator
-      elsif UNARY_OPERATORS.includes?(current.kind)
-        :parse_unary_operator
-      end
     end
 
     def determine_infix_function(token = current)
@@ -140,7 +127,7 @@ module Axal
     end
 
     def parse_identifier
-      if lookahead.type == TokenKind::EQUALS
+      if lookahead.kind == TokenKind::EQUALS
         parse_var_binding
       else
         ident = AST::Identifier.new(current.lexeme)
@@ -150,7 +137,7 @@ module Axal
     end
 
     def parse_string
-      AST::String.new(current.literal)
+      AST::Str.new(current.literal)
     end
 
     def parse_number
@@ -166,7 +153,7 @@ module Axal
     end
 
     def parse_function_definition
-      return unless consume_if_nxt_is(build_token(:identifier))
+      return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
       fn = AST::FunctionDefinition.new(AST::Identifier.new(current.lexeme))
 
       if nxt.kind != TokenKind::NEW_LINE && nxt.kind != TokenKind::COLON
@@ -174,9 +161,13 @@ module Axal
         return
       end
 
-      fn.params = parse_function_params if nxt.kind == TokenKind::COLON
+      if nxt.kind == TokenKind::COLON
+        if params = parse_function_params
+          fn.params = params
+        end
+      end
 
-      return unless consume_if_nxt_is(build_token(TokenKind::NEW_LINE, "\n"))
+      return unless consume_if_nxt_is(TokenKind::NEW_LINE)
       fn.body = parse_block
 
       fn
@@ -184,14 +175,14 @@ module Axal
 
     def parse_function_params
       consume
-      return unless consume_if_nxt_is(build_token(:identifier))
+      return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
 
-      identifiers = [] of String
+      identifiers = [] of AST::Identifier
       identifiers << AST::Identifier.new(current.lexeme)
 
       while nxt.kind == TokenKind::COMMA
         consume
-        return unless consume_if_nxt_is(build_token(:identifier))
+        return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
         identifiers << AST::Identifier.new(current.lexeme)
       end
 
@@ -219,7 +210,7 @@ module Axal
         args << parse_expr_recursively
       end
 
-      return unless consume_if_nxt_is(build_token(TokenKind::RIGHT_PAREN, ")"))
+      return unless consume_if_nxt_is(TokenKind::RIGHT_PAREN)
       args
     end
 
@@ -227,13 +218,13 @@ module Axal
       conditional = AST::Conditional.new
       consume
       conditional.condition = parse_expr_recursively
-      return unless consume_if_nxt_is(build_token(TokenKind::NEW_LINE, "\n"))
+      return unless consume_if_nxt_is(TokenKind::NEW_LINE)
 
       conditional.when_true = parse_block
 
       # TODO: Probably is best to use nxt and check directly; ELSE is optional and should not result in errors being added to the parsing. Besides that: think of some sanity checks (e.g., no parser errors) that maybe should be done in EVERY parser test.
-      if consume_if_nxt_is(build_token(TokenKind::ELSE, "else"))
-        return unless consume_if_nxt_is(build_token(TokenKind::NEW_LINE, "\n"))
+      if consume_if_nxt_is(TokenKind::ELSE)
+        return unless consume_if_nxt_is(TokenKind::NEW_LINE)
         conditional.when_false = parse_block
       end
 
@@ -244,7 +235,7 @@ module Axal
       repetition = AST::Repetition.new
       consume
       repetition.condition = parse_expr_recursively
-      return unless consume_if_nxt_is(build_token(TokenKind::NEW_LINE, "\n"))
+      return unless consume_if_nxt_is(TokenKind::NEW_LINE)
 
       repetition.block = parse_block
       repetition
@@ -258,7 +249,7 @@ module Axal
         block << expr unless expr.nil?
         consume
       end
-      unexpected_token_error(build_token(TokenKind::EOF)) if current.kind == TokenKind::EOF
+      unexpected_token_error(current.kind) if current.kind == TokenKind::EOF
 
       block
     end
@@ -267,7 +258,7 @@ module Axal
       consume
 
       expr = parse_expr_recursively
-      return unless consume_if_nxt_is(build_token(TokenKind::RIGHT_PAREN, ")"))
+      return unless consume_if_nxt_is(TokenKind::RIGHT_PAREN)
 
       expr
     end
@@ -290,7 +281,7 @@ module Axal
     end
 
     def parse_unary_operator
-      op = AST::UnaryOperator.new(current.type)
+      op = AST::UnaryOperator.new(current.kind)
       consume
       op.operand = parse_expr_recursively(PREFIX_PRECEDENCE)
 
@@ -308,11 +299,71 @@ module Axal
     end
 
     # TODO - fix this
-    def send(a)
-      puts "SEND: #{a}"
+    def send(a, b)
+      puts "SEND: #{a}, #{b}"
+    end
+
+    def determine_parsing_function2
+      if [TokenKind::RETURN, TokenKind::IDENTIFIER, TokenKind::NUMBER, TokenKind::STRING, TokenKind::TRUE,
+          TokenKind::FALSE, TokenKind::NIL, TokenKind::FN, TokenKind::IF, TokenKind::WHILE].includes?(current.kind)
+        "parse_#{current.kind}"
+      elsif current.kind == TokenKind::LEFT_PAREN
+        parse_grouped_expr
+      elsif [TokenKind::NEW_LINE, TokenKind::EOF].includes?(current.kind)
+        parse_terminator
+      elsif UNARY_OPERATORS.includes?(current.kind)
+        parse_unary_operator
+      end
     end
 
     def parse_expr_recursively(precedence = LOWEST_PRECEDENCE)
+      expr = case current.kind
+             when TokenKind::RETURN
+               parse_return
+             when TokenKind::IDENTIFIER
+              parse_identifier
+             when TokenKind::NUMBER
+               parse_number
+             when TokenKind::STRING
+               parse_string
+             when TokenKind::TRUE, TokenKind::FALSE
+               parse_boolean
+             when TokenKind::NIL
+               parse_nil
+             when TokenKind::FN
+               parse_function_definition
+             when TokenKind::IF
+               parse_conditional
+             when TokenKind::WHILE
+               parse_repetition
+             when TokenKind::LEFT_PAREN
+               parse_grouped_expr
+             when TokenKind::NEW_LINE, TokenKind::EOF
+               parse_terminator
+             else
+               if UNARY_OPERATORS.includes?(current.kind)
+                 parse_unary_operator
+               else
+                 unrecognized_token_error
+                 return
+               end
+             end
+      return if expr.nil? # When expr is nil, it means we have reached a \n or a eof.
+
+                # Note that here we are checking the NEXT token.
+      while nxt_not_terminator? && precedence < nxt_precedence
+        infix_parsing_function = determine_infix_function(nxt)
+
+        return expr if infix_parsing_function.nil?
+
+        consume
+        expr = send(infix_parsing_function, expr)
+      end
+
+      expr
+    end
+
+    def parse_expr_recursively2(precedence = LOWEST_PRECEDENCE)
       parsing_function = determine_parsing_function
       if parsing_function.nil?
         unrecognized_token_error

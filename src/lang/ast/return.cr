@@ -1,12 +1,12 @@
 module Axal::AST
 class Return < Expression
 
-    getter expression : String
+    getter expression : Expression?
   
     def initialize(@expression)
     end
   
-    def ==(other)
+    def ==(other : Expression)
       children == other.children
     end
   

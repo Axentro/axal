@@ -5,7 +5,7 @@ module Axal::AST
     EXPECTED_NEXT_TOKENS = [
       TokenKind::NEW_LINE,
       TokenKind::PLUS,
-      TokenKind::MINUS,
+      TokenKind::HYPHEN,
       TokenKind::ASTERISK,
       TokenKind::FORWARD_SLASH,
       TokenKind::DOUBLE_EQUALS,
@@ -21,7 +21,7 @@ module Axal::AST
     def initialize(@name)
     end
 
-    def ==(other)
+    def ==(other : Identifier)
       name == other.name
     end
 

@@ -4,7 +4,7 @@ module Axal::AST
       super(val)
     end
 
-    def ==(other)
+    def ==(other : Expression)
       value == other.value
     end
 

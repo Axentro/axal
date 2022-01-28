@@ -1,17 +1,17 @@
 module Axal::AST
   class FunctionDefinition < Expression
-    getter name : String?
-    getter params : Array(Expression)
-    getter body : String
+    getter name : Identifier?
+    property params : Array(Identifier)
+    property body : Block?
 
-    def initialize(@name = nil, @params = [] of Expression, @body = nil)
+    def initialize(@name = nil, @params = [] of Identifier, @body = nil)
     end
 
     def function_name_as_str
       name.name
     end
 
-    def ==(other)
+    def ==(other : Expression)
       children == other.children
     end
 

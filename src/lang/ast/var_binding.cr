@@ -1,7 +1,7 @@
 module Axal::AST
   class VarBinding < Expression
     getter left : Identifier
-    getter right : Expression
+    getter right : Expression?
 
     def initialize(@left, @right)
     end
@@ -10,8 +10,8 @@ module Axal::AST
       left.name
     end
 
-    def ==(other)
-      @children == other.children
+    def ==(other : Expression)
+      children == other.children
     end
 
     def children

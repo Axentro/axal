@@ -13,7 +13,7 @@ module Axal::AST
     end
 
     def ==(other : Expression)
-      @expressions == other.expressions
+      @expressions == other.children
     end
 
     def children
