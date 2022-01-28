@@ -1,29 +1,24 @@
-module Axal
-    module AST
-      module Shared
-        module ExpressionCollection
-      
-          def initialize
-            @expressions = [] of Array(Token)
-          end
-
-          def expressions
-            @expressions
-          end
-  
-          def <<(expr)
-            @expressions << expr
-          end
-  
-          def ==(other)
-            @expressions == other.expressions
-          end
-  
-          def children
-            expressions
-          end
-        end
-      end
+module Axal::AST
+  module Shared::ExpressionCollection
+    def initialize
+      @expressions = [] of Expression
     end
+
+    def expressions
+      @expressions
+    end
+
+    def <<(expr : Expression)
+      @expressions << expr
+    end
+
+    def ==(other : Expression)
+      @expressions == other.expressions
+    end
+
+    def children
+      @expressions
+    end
+
   end
-  
+end
