@@ -98,11 +98,11 @@ module Axal
     end
 
     def current_precedence
-      OPERATOR_PRECEDENCE[current.kind] || LOWEST_PRECEDENCE
+      OPERATOR_PRECEDENCE[current.kind]? || LOWEST_PRECEDENCE
     end
 
     def nxt_precedence
-      OPERATOR_PRECEDENCE[nxt.kind] || LOWEST_PRECEDENCE
+      OPERATOR_PRECEDENCE[nxt.kind]? || LOWEST_PRECEDENCE
     end
 
     def unrecognized_token_error
@@ -116,14 +116,6 @@ module Axal
     def check_syntax_compliance(ast_node)
       return if ast_node.expects?(nxt)
       unexpected_token_error
-    end
-
-    def determine_infix_function(token = current)
-      if (BINARY_OPERATORS + LOGICAL_OPERATORS).includes?(token.kind)
-        :parse_binary_operator
-      elsif token.kind == TokenKind::LEFT_PAREN
-        :parse_function_call
-      end
     end
 
     def parse_identifier
@@ -190,11 +182,12 @@ module Axal
     end
 
     def parse_function_call(identifier)
-      AST::FunctionCall.new(identifier, parse_function_call_args)
+      args = parse_function_call_args || [] of AST::Expression?
+      AST::FunctionCall.new(identifier, args)
     end
 
     def parse_function_call_args
-      args = [] of String
+      args = [] of AST::Expression?
 
       # Function call without arguments.
       if nxt.kind == TokenKind::RIGHT_PAREN
@@ -203,15 +196,21 @@ module Axal
       end
 
       consume
-      args << parse_expr_recursively
+      expr = parse_expr_recursively
+      unless expr.nil?
+        args << expr.not_nil! 
+      end
 
       while nxt.kind == TokenKind::COMMA
         consume(2)
-        args << parse_expr_recursively
+        expr = parse_expr_recursively
+        unless expr.nil?
+          args << expr.not_nil!
+        end
       end
 
       return unless consume_if_nxt_is(TokenKind::RIGHT_PAREN)
-      args
+      args.not_nil!
     end
 
     def parse_conditional
@@ -298,30 +297,12 @@ module Axal
       op
     end
 
-    # TODO - fix this
-    def send(a, b)
-      puts "SEND: #{a}, #{b}"
-    end
-
-    def determine_parsing_function2
-      if [TokenKind::RETURN, TokenKind::IDENTIFIER, TokenKind::NUMBER, TokenKind::STRING, TokenKind::TRUE,
-          TokenKind::FALSE, TokenKind::NIL, TokenKind::FN, TokenKind::IF, TokenKind::WHILE].includes?(current.kind)
-        "parse_#{current.kind}"
-      elsif current.kind == TokenKind::LEFT_PAREN
-        parse_grouped_expr
-      elsif [TokenKind::NEW_LINE, TokenKind::EOF].includes?(current.kind)
-        parse_terminator
-      elsif UNARY_OPERATORS.includes?(current.kind)
-        parse_unary_operator
-      end
-    end
-
     def parse_expr_recursively(precedence = LOWEST_PRECEDENCE)
       expr = case current.kind
              when TokenKind::RETURN
                parse_return
              when TokenKind::IDENTIFIER
-              parse_identifier
+               parse_identifier
              when TokenKind::NUMBER
                parse_number
              when TokenKind::STRING
@@ -348,40 +329,23 @@ module Axal
                  return
                end
              end
-      return if expr.nil? # When expr is nil, it means we have reached a \n or a eof.
 
-                # Note that here we are checking the NEXT token.
+      # When expr is nil, it means we have reached a \n or an eof
+      return if expr.nil?
+
+      # Note that here we are checking the NEXT token.
       while nxt_not_terminator? && precedence < nxt_precedence
-        infix_parsing_function = determine_infix_function(nxt)
-
-        return expr if infix_parsing_function.nil?
-
-        consume
-        expr = send(infix_parsing_function, expr)
+        expr = if (BINARY_OPERATORS + LOGICAL_OPERATORS).includes?(nxt.kind)
+          consume
+          parse_binary_operator(expr)
+        elsif nxt.kind == TokenKind::LEFT_PAREN
+          consume
+          parse_function_call(expr)
+        else
+          return expr
+        end
+        
       end
-
-      expr
-    end
-
-    def parse_expr_recursively2(precedence = LOWEST_PRECEDENCE)
-      parsing_function = determine_parsing_function
-      if parsing_function.nil?
-        unrecognized_token_error
-        return
-      end
-      expr = send(parsing_function)
-      return if expr.nil? # When expr is nil, it means we have reached a \n or a eof.
-
-                # Note that here we are checking the NEXT token.
-      while nxt_not_terminator? && precedence < nxt_precedence
-        infix_parsing_function = determine_infix_function(nxt)
-
-        return expr if infix_parsing_function.nil?
-
-        consume
-        expr = send(infix_parsing_function, expr)
-      end
-
       expr
     end
   end

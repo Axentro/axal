@@ -1,9 +1,10 @@
 require "./expression"
+
 module Axal::AST
   class BinaryOperator < Expression
-    getter operator : String
-    getter left : String?
-    getter right : String?
+    getter operator : TokenKind
+    getter left : Expression?
+    property right : Expression?
 
     def initialize(@operator, @left = nil, @right = nil)
     end

@@ -32,6 +32,5 @@ module Axal::AST
     def expects?(next_token)
       EXPECTED_NEXT_TOKENS.includes?(next_token)
     end
-
   end
 end

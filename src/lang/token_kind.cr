@@ -103,7 +103,7 @@ module Axal
     NOT_EQUAL
     GREATER_THAN_OR_EQUAL
     LESS_THAN_OR_EQUAL
-    
+
     STRING
     NUMBER
     IDENTIFIER
@@ -155,7 +155,7 @@ module Axal
       when "while"
         WHILE
       else
-        IDENTIFIER  
+        IDENTIFIER
       end
     end
 

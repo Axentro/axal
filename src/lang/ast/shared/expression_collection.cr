@@ -19,6 +19,5 @@ module Axal::AST
     def children
       @expressions
     end
-
   end
 end
