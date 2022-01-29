@@ -220,7 +220,6 @@ module Axal
 
       conditional.when_true = parse_block
 
-      # TODO: Probably is best to use nxt and check directly; ELSE is optional and should not result in errors being added to the parsing. Besides that: think of some sanity checks (e.g., no parser errors) that maybe should be done in EVERY parser test.
       if consume_if_nxt_is(TokenKind::ELSE)
         return unless consume_if_nxt_is(TokenKind::NEW_LINE)
         conditional.when_false = parse_block
@@ -261,7 +260,6 @@ module Axal
       expr
     end
 
-    # TODO Temporary impl; reflect more deeply about the appropriate way of parsing a terminator.
     def parse_terminator
       nil
     end
