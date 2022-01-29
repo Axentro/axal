@@ -1,13 +1,12 @@
 module Axal::AST
   class FunctionCall < Expression
-    getter name : Expression?
-    getter args : Array(Expression?)
+    getter name : Identifier
+    getter args : Array(Expression)
 
-    def initialize(@name = nil, @args = [] of Expression)
+    def initialize(@name, @args = [] of Expression)
     end
 
     def function_name_as_str
-      # The instance variable @name is an AST::Identifier.
       name.name
     end
 

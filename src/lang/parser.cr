@@ -182,12 +182,11 @@ module Axal
     end
 
     def parse_function_call(identifier)
-      args = parse_function_call_args || [] of AST::Expression?
-      AST::FunctionCall.new(identifier, args)
+      AST::FunctionCall.new(identifier.as(AST::Identifier), parse_function_call_args || [] of AST::Expression)
     end
 
     def parse_function_call_args
-      args = [] of AST::Expression?
+      args = [] of AST::Expression
 
       # Function call without arguments.
       if nxt.kind == TokenKind::RIGHT_PAREN
@@ -198,7 +197,7 @@ module Axal
       consume
       expr = parse_expr_recursively
       unless expr.nil?
-        args << expr.not_nil! 
+        args << expr.not_nil!
       end
 
       while nxt.kind == TokenKind::COMMA
@@ -336,15 +335,14 @@ module Axal
       # Note that here we are checking the NEXT token.
       while nxt_not_terminator? && precedence < nxt_precedence
         expr = if (BINARY_OPERATORS + LOGICAL_OPERATORS).includes?(nxt.kind)
-          consume
-          parse_binary_operator(expr)
-        elsif nxt.kind == TokenKind::LEFT_PAREN
-          consume
-          parse_function_call(expr)
-        else
-          return expr
-        end
-        
+                 consume
+                 parse_binary_operator(expr)
+               elsif nxt.kind == TokenKind::LEFT_PAREN
+                 consume
+                 parse_function_call(expr)
+               else
+                 return expr
+               end
       end
       expr
     end

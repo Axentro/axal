@@ -1,10 +1,10 @@
 module Axal::AST
   class FunctionDefinition < Expression
-    getter name : Identifier?
+    getter name : Identifier
     property params : Array(Identifier)
     property body : Block?
 
-    def initialize(@name = nil, @params = [] of Identifier, @body = nil)
+    def initialize(@name, @params = [] of Identifier, @body = nil)
     end
 
     def function_name_as_str
