@@ -1,6 +1,6 @@
 module Axal::AST
   class Number < Expression
-    def initialize(val)
+    def initialize(val : Int32 | Int64 | Float32 | Float64)
       super(val)
     end
 

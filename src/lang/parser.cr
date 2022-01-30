@@ -133,7 +133,12 @@ module Axal
     end
 
     def parse_number
-      AST::Number.new(current.literal)
+      case current.literal
+      when Float64 
+        AST::Number.new(current.literal.not_nil!.to_f64)
+      else
+        raise Error::Syntax::IncorrectType.new(current, "float64", "string")
+      end  
     end
 
     def parse_boolean

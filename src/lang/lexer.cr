@@ -29,11 +29,13 @@ module Axal
       c = consume
 
       return if WHITESPACE.includes?(c)
-      return ignore_comment_line if c == "//"
+      return ignore_comment_line if c == "#"
 
       if c == "\n"
         @line += 1
-        @tokens << token_from_one_char_lex(c) if @tokens.last.kind != "\n"
+        if @tokens.size > 0
+          @tokens << token_from_one_char_lex(c) if tokens.last.kind != "\n"
+        end
 
         return
       end
@@ -122,7 +124,7 @@ module Axal
       end
 
       lexeme = @source[@lexeme_start_p..(@next_p - 1)].to_s
-      Token.new(TokenKind::NUMBER, lexeme, lexeme.to_f, current_location)
+      Token.new(TokenKind::NUMBER, lexeme, lexeme.to_f64, current_location)
     end
 
     def identifier

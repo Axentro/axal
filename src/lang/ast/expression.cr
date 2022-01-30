@@ -1,6 +1,6 @@
 module Axal::AST
   class Expression
-    getter value : Expression? | String? | Float32? | Float64? | Int32? | Int64? | Bool?
+    getter value : Expression? | String? | Float64? | Bool?
 
     def initialize(@value = nil)
     end
@@ -14,8 +14,8 @@ module Axal::AST
       [] of Expression
     end
 
-    # def type
-    #   self.class.to_s.split('::').last.underscore # e.g., Stoffle::AST::FunctionCall becomes "function_call"
-    # end
+    def type
+      self.class.to_s.split("::").last.underscore # e.g., Stoffle::AST::FunctionCall becomes "function_call"
+    end
   end
 end
