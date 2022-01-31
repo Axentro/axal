@@ -113,6 +113,7 @@ module Axal
     END
     FALSE
     FN
+    MOD
     IF
     NIL
     OR
@@ -154,6 +155,8 @@ module Axal
         TRUE
       when "while"
         WHILE
+      when "mod"
+        MOD  
       else
         IDENTIFIER
       end

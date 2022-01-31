@@ -121,12 +121,46 @@ module Axal
     def parse_identifier
       if lookahead.kind == TokenKind::EQUALS
         parse_var_binding
+      elsif lookahead.kind == TokenKind::DOT
+        parse_qualified_identifier
       else
         ident = AST::Identifier.new(current.lexeme)
         check_syntax_compliance(ident)
         ident
       end
     end
+
+    def parse_qualified_identifier
+      identifiers = [] of AST::Identifier
+      identifiers << AST::Identifier.new(current.lexeme)
+      consume
+      return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
+
+      identifiers << AST::Identifier.new(current.lexeme)
+
+      while nxt.kind == TokenKind::DOT
+        consume
+        return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
+        identifiers << AST::Identifier.new(current.lexeme)
+      end
+      AST::QualifiedIdentifier.new(identifiers)
+    end
+
+    # def parse_function_params
+    #   consume
+    #   return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
+
+    #   identifiers = [] of AST::Identifier
+    #   identifiers << AST::Identifier.new(current.lexeme)
+
+    #   while nxt.kind == TokenKind::COMMA
+    #     consume
+    #     return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
+    #     identifiers << AST::Identifier.new(current.lexeme)
+    #   end
+
+    #   identifiers
+    # end
 
     def parse_string
       AST::Str.new(current.literal)
@@ -170,6 +204,30 @@ module Axal
       fn
     end
 
+    def parse_module_definition
+      return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
+      mod = AST::ModuleDefinition.new(AST::Identifier.new(current.lexeme))
+
+      if nxt.kind != TokenKind::NEW_LINE 
+        unexpected_token_error
+        return
+      end
+
+      return unless consume_if_nxt_is(TokenKind::NEW_LINE)
+      mod.body = parse_block
+      
+      # put module name onto fn_def for later use
+      if body = mod.body
+        body.expressions.each do |expr| 
+          if expr.is_a?(AST::FunctionDefinition)
+            expr.module_name = mod.name 
+          end
+        end
+      end
+      
+      mod
+    end
+
     def parse_function_params
       consume
       return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
@@ -187,7 +245,14 @@ module Axal
     end
 
     def parse_function_call(identifier)
-      AST::FunctionCall.new(identifier.as(AST::Identifier), parse_function_call_args || [] of AST::Expression)
+      case identifier
+      when AST::Identifier  
+        AST::FunctionCall.new(identifier.as(AST::Identifier), (parse_function_call_args || [] of AST::Expression), [] of AST::Identifier)
+      when AST::QualifiedIdentifier
+        fn_name = identifier.qualifiers.last
+        qualifiers = identifier.qualifiers
+        AST::FunctionCall.new(fn_name, (parse_function_call_args || [] of AST::Expression), qualifiers)
+      end      
     end
 
     def parse_function_call_args
@@ -315,6 +380,8 @@ module Axal
                parse_nil
              when TokenKind::FN
                parse_function_definition
+            when TokenKind::MOD
+               parse_module_definition
              when TokenKind::IF
                parse_conditional
              when TokenKind::WHILE

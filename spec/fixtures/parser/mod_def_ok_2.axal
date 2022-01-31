@@ -1,0 +1,5 @@
+mod mymodule
+  fn one
+    1
+  end
+end

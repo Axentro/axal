@@ -44,6 +44,17 @@ describe Interpreter do
       end
     end
 
+    context "module definitions" do
+      it "correctly define a module" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("mod_call_ok_1.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("true")
+      end
+    end
+
     context "function definitions" do
       it "does correctly define a function" do
         interpreter = Interpreter.new

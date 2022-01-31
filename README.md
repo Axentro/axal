@@ -37,3 +37,9 @@ TODO: Write development instructions here
 ## Contributors
 
 - [Kingsley](https://github.com/your-github-user) - creator and maintainer
+
+## TODO
+
+- implement Module
+- implement Array
+- implement Record 

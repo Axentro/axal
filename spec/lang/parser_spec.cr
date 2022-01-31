@@ -16,6 +16,7 @@ describe Parser do
   axal_repetition = AST::Repetition
   axal_block = AST::Block
   axal_fn_def = AST::FunctionDefinition
+  axal_mod_def = AST::ModuleDefinition
   axal_fn_call = AST::FunctionCall
 
   describe "parse" do
@@ -455,6 +456,69 @@ describe Parser do
         parser.parse
 
         parser.ast.should eq(expected_program)
+      end
+    end
+
+    context "module definition" do
+      it "generates the expected AST for an empty module" do
+        expected_program = axal_prog.new
+
+        mod_def = axal_mod_def.new(axal_ident.new("mymodule"), axal_block.new)
+        
+        expected_program.expressions << mod_def
+        parser = Parser.new(tokens_from_source("mod_def_ok_1.axal"))
+
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "generates the expected AST for a module with a block" do
+        expected_program = axal_prog.new
+
+        fn_block = axal_block.new
+        fn_block << axal_num.new(1.0)
+        fn_name = axal_ident.new("one")
+        fn_def = axal_fn_def.new(fn_name, [] of AST::Identifier, fn_block)
+
+        mod_block = axal_block.new
+        mod_block << fn_def
+
+        mod_def = axal_mod_def.new(axal_ident.new("mymodule"), mod_block)
+        
+        expected_program.expressions << mod_def
+        parser = Parser.new(tokens_from_source("mod_def_ok_2.axal"))
+
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+    end
+
+    context "qualified function call" do
+      it "generates the expected AST for a qualified function call" do
+        # expected_program = axal_prog.new
+
+        # fn_block = axal_block.new
+        # fn_block << axal_num.new(1.0)
+        # fn_name = axal_ident.new("one")
+        # fn_def = axal_fn_def.new(fn_name, [] of AST::Identifier, fn_block)
+
+        # mod_block = axal_block.new
+        # mod_block << fn_def
+
+        # mod_def = axal_mod_def.new(axal_ident.new("mymodule"), mod_block)
+        
+        # ident = axal_ident.new("mymodule")
+        # fn_call = axal_fn_call.new(ident, [] of AST::Expression)
+        # expected_program.expressions << fn_call
+        parser = Parser.new(tokens_from_source("mod_call_ok_1.axal"))
+
+        parser.parse
+
+        pp parser.ast
+
+        # parser.ast.should eq(expected_program)
       end
     end
 

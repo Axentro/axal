@@ -44,12 +44,14 @@ module Axal
     end
 
     def interpret_node(node)
-      #   pp node
+        # pp node
       case node
+      when AST::ModuleDefinition
+        interpret_module_definition(node.as(AST::ModuleDefinition))
       when AST::FunctionCall
         interpret_function_call(node.as(AST::FunctionCall))
       when AST::FunctionDefinition
-        interpret_function_definition(node.as(AST::FunctionDefinition))
+        interpret_function_definition(node.as(AST::FunctionDefinition))   
       when AST::BinaryOperator
         interpret_binary_operator(node.as(AST::BinaryOperator))
       when AST::Boolean
@@ -217,6 +219,12 @@ module Axal
       @env[fn_def.function_name_as_str] = fn_def
     end
 
+    def interpret_module_definition(mod_def)
+      @env[mod_def.module_name_as_str] = mod_def
+      # process all the expressions inside the module body
+      interpret_nodes(mod_def.body.not_nil!.expressions) if !mod_def.body.nil?
+    end
+
     def interpret_function_call(fn_call : AST::FunctionCall)
       return if println(fn_call)
 
@@ -259,14 +267,6 @@ module Axal
 
     def interpret_binary_operator(binary_op)
       lhs = interpret_node(binary_op.left.not_nil!)
-
-      # combinations
-      # OR
-      # float, float    (a)
-      # string, string  (a)
-      # bool, bool      (always true if (false,true or true,false))
-      # nil, nil        (a)
-      #
 
       if binary_op.operator == TokenKind::OR
         if lhs.is_a?(Bool)

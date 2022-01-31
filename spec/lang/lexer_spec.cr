@@ -115,6 +115,28 @@ describe Lexer do
     end
   end
 
+  context "modules" do 
+    it "produces the correct tokens" do
+      source = <<-SOURCE
+        mod mymodule
+          fn go
+            true
+          end
+        end
+      SOURCE
+
+      lexer = Lexer.new(source)
+
+      expected_token_types = [
+        TokenKind::MOD, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::FN, 
+        TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::TRUE, TokenKind::NEW_LINE, 
+        TokenKind::END, TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF]
+      lexer.start_tokenization
+
+      lexer.tokens.map(&.kind).should eq(expected_token_types)
+    end
+  end
+
   context "when the source is a program with valid lexemes only" do
     it "produces the appropriate tokens" do
       source = <<-SOURCE

@@ -1,0 +1,8 @@
+mod mymodule
+  fn go
+    true
+  end
+end
+
+println(mymodule.go())
+

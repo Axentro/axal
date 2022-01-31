@@ -3,12 +3,13 @@ module Axal::AST
     getter name : Identifier
     property params : Array(Identifier)
     property body : Block?
+    property module_name : Identifier?
 
     def initialize(@name, @params = [] of Identifier, @body = nil)
     end
 
     def function_name_as_str
-      name.name
+      @module_name.nil? ? @name.name : "#{@module_name.not_nil!.name}.#{@name.name}"
     end
 
     def ==(other : Expression)
