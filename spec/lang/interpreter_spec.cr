@@ -268,7 +268,7 @@ describe Interpreter do
         interpreter = Interpreter.new
 
         interpreter.interpret(ast_from_source("conditional_ok_14.axal"))
-pp interpreter.output
+
         interpreter.output.size.should eq(0)
       end
 
@@ -336,6 +336,17 @@ pp interpreter.output
 
         interpreter.env["i"].should eq(5.0)
         interpreter.env["continue_loop"].should eq(false)
+      end
+    end
+
+    context "complex programs" do
+      it "does correctly interpret an integer summation program" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("complex_program_ok_1.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("5050.0")
       end
     end
   end

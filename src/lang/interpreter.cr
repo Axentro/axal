@@ -158,7 +158,7 @@ module Axal
           when Bool
             @env[var_binding.var_name_as_str] = expr.as(Bool)
           when Nil
-            @env[var_binding.var_name_as_str] = expr.as(Nil)  
+            @env[var_binding.var_name_as_str] = expr.as(Nil)
           else
             raise "cant assign variable inside function for global var"
           end
@@ -259,60 +259,89 @@ module Axal
 
     def interpret_binary_operator(binary_op)
       lhs = interpret_node(binary_op.left.not_nil!)
-      rhs = interpret_node(binary_op.right.not_nil!)
 
-      if lhs.is_a?(Float64) && rhs.is_a?(Float64)
-        case binary_op.operator
-        when TokenKind::PLUS
-          lhs + rhs
-        when TokenKind::HYPHEN
-          lhs - rhs
-        when TokenKind::ASTERISK
-          lhs * rhs
-        when TokenKind::FORWARD_SLASH
-          lhs / rhs
-        when TokenKind::DOUBLE_EQUALS
-          lhs == rhs
-        when TokenKind::NOT_EQUAL
-          lhs != rhs
-        when TokenKind::GREATER_THAN
-          lhs > rhs
-        when TokenKind::LESS_THAN
-          lhs < rhs
-        when TokenKind::GREATER_THAN_OR_EQUAL
-          lhs >= rhs
-        when TokenKind::LESS_THAN_OR_EQUAL
-          lhs <= rhs
-        else
-          raise "this operator cannot be applied to 2 numbers (not #{lhs.class} and #{rhs.class})"
+      # combinations
+      # OR
+      # float, float    (a)
+      # string, string  (a)
+      # bool, bool      (always true if (false,true or true,false))
+      # nil, nil        (a)
+      #
+
+      if binary_op.operator == TokenKind::OR
+        if lhs.is_a?(Bool)
+          lhs || interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(String)
+          lhs || interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(Float64)
+          lhs || interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(Nil)
+          lhs || interpret_node(binary_op.right.not_nil!)
         end
-      elsif lhs.is_a?(String) && rhs.is_a?(String)
-        case binary_op.operator
-        when TokenKind::PLUS
-          lhs + rhs
-        when TokenKind::DOUBLE_EQUALS
-          lhs == rhs
-        when TokenKind::NOT_EQUAL
-          lhs != rhs
-        when TokenKind::GREATER_THAN
-          lhs > rhs
-        when TokenKind::LESS_THAN
-          lhs < rhs
-        when TokenKind::GREATER_THAN_OR_EQUAL
-          lhs >= rhs
-        when TokenKind::LESS_THAN_OR_EQUAL
-          lhs <= rhs
-        else
-          raise "this operator can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
+      elsif binary_op.operator == TokenKind::AND
+        if lhs.is_a?(Bool)
+          lhs && interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(String)
+          lhs && interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(Float64)
+          lhs && interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(Nil)
+          lhs && interpret_node(binary_op.right.not_nil!)
         end
-      elsif lhs.is_a?(Bool?) && rhs.is_a?(Bool?)
-        case binary_op.operator
-        when TokenKind::OR
-          lhs || rhs
-        when TokenKind::AND
-          lhs && rhs
+      elsif binary_op.operator == TokenKind::DOUBLE_EQUALS
+        if lhs.is_a?(Bool)
+          lhs == interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(String)
+          lhs == interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(Float64)
+          lhs == interpret_node(binary_op.right.not_nil!)
+        elsif lhs.is_a?(Nil)
+          lhs == interpret_node(binary_op.right.not_nil!)
+        end
+      else
+        rhs = interpret_node(binary_op.right.not_nil!)
+        if lhs.is_a?(Float64) && rhs.is_a?(Float64)
+          case binary_op.operator
+          when TokenKind::PLUS
+            lhs + rhs
+          when TokenKind::HYPHEN
+            lhs - rhs
+          when TokenKind::ASTERISK
+            lhs * rhs
+          when TokenKind::FORWARD_SLASH
+            lhs / rhs
+          when TokenKind::NOT_EQUAL
+            lhs != rhs
+          when TokenKind::GREATER_THAN
+            lhs > rhs
+          when TokenKind::LESS_THAN
+            lhs < rhs
+          when TokenKind::GREATER_THAN_OR_EQUAL
+            lhs >= rhs
+          when TokenKind::LESS_THAN_OR_EQUAL
+            lhs <= rhs
+          else
+            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 numbers (not #{lhs.class} and #{rhs.class})"
+          end
+        elsif lhs.is_a?(String) && rhs.is_a?(String)
+          case binary_op.operator
+          when TokenKind::PLUS
+            lhs + rhs
+          when TokenKind::NOT_EQUAL
+            lhs != rhs
+          when TokenKind::GREATER_THAN
+            lhs > rhs
+          when TokenKind::LESS_THAN
+            lhs < rhs
+          when TokenKind::GREATER_THAN_OR_EQUAL
+            lhs >= rhs
+          when TokenKind::LESS_THAN_OR_EQUAL
+            lhs <= rhs
+          else
+            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
+          end
         else
-          raise "this operator can only be applied to 2 bools (not #{lhs.class} and #{rhs.class})"
+          raise "The operator '#{binary_op.operator.to_s}' cannot be applied to (#{lhs.class} and #{rhs.class})"
         end
       end
     end
