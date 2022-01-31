@@ -115,7 +115,7 @@ describe Lexer do
     end
   end
 
-  context "modules" do 
+  context "modules" do
     it "produces the correct tokens" do
       source = <<-SOURCE
         mod mymodule
@@ -128,9 +128,10 @@ describe Lexer do
       lexer = Lexer.new(source)
 
       expected_token_types = [
-        TokenKind::MOD, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::FN, 
-        TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::TRUE, TokenKind::NEW_LINE, 
-        TokenKind::END, TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF]
+        TokenKind::MOD, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::FN,
+        TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::TRUE, TokenKind::NEW_LINE,
+        TokenKind::END, TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF,
+      ]
       lexer.start_tokenization
 
       lexer.tokens.map(&.kind).should eq(expected_token_types)

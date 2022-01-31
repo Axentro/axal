@@ -168,11 +168,11 @@ module Axal
 
     def parse_number
       case current.literal
-      when Float64 
+      when Float64
         AST::Number.new(current.literal.not_nil!.to_f64)
       else
         raise Error::Syntax::IncorrectType.new(current, "float64", "string")
-      end  
+      end
     end
 
     def parse_boolean
@@ -208,23 +208,23 @@ module Axal
       return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
       mod = AST::ModuleDefinition.new(AST::Identifier.new(current.lexeme))
 
-      if nxt.kind != TokenKind::NEW_LINE 
+      if nxt.kind != TokenKind::NEW_LINE
         unexpected_token_error
         return
       end
 
       return unless consume_if_nxt_is(TokenKind::NEW_LINE)
       mod.body = parse_block
-      
+
       # put module name onto fn_def for later use
       if body = mod.body
-        body.expressions.each do |expr| 
+        body.expressions.each do |expr|
           if expr.is_a?(AST::FunctionDefinition)
-            expr.module_name = mod.name 
+            expr.module_name = mod.name
           end
         end
       end
-      
+
       mod
     end
 
@@ -246,13 +246,13 @@ module Axal
 
     def parse_function_call(identifier)
       case identifier
-      when AST::Identifier  
+      when AST::Identifier
         AST::FunctionCall.new(identifier.as(AST::Identifier), (parse_function_call_args || [] of AST::Expression), [] of AST::Identifier)
       when AST::QualifiedIdentifier
         fn_name = identifier.qualifiers.last
         qualifiers = identifier.qualifiers
         AST::FunctionCall.new(fn_name, (parse_function_call_args || [] of AST::Expression), qualifiers)
-      end      
+      end
     end
 
     def parse_function_call_args
@@ -380,7 +380,7 @@ module Axal
                parse_nil
              when TokenKind::FN
                parse_function_definition
-            when TokenKind::MOD
+             when TokenKind::MOD
                parse_module_definition
              when TokenKind::IF
                parse_conditional

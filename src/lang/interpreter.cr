@@ -44,14 +44,14 @@ module Axal
     end
 
     def interpret_node(node)
-        # pp node
+      # pp node
       case node
       when AST::ModuleDefinition
         interpret_module_definition(node.as(AST::ModuleDefinition))
       when AST::FunctionCall
         interpret_function_call(node.as(AST::FunctionCall))
       when AST::FunctionDefinition
-        interpret_function_definition(node.as(AST::FunctionDefinition))   
+        interpret_function_definition(node.as(AST::FunctionDefinition))
       when AST::BinaryOperator
         interpret_binary_operator(node.as(AST::BinaryOperator))
       when AST::Boolean

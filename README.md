@@ -40,6 +40,5 @@ TODO: Write development instructions here
 
 ## TODO
 
-- implement Module
 - implement Array
 - implement Record 

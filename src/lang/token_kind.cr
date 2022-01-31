@@ -156,7 +156,7 @@ module Axal
       when "while"
         WHILE
       when "mod"
-        MOD  
+        MOD
       else
         IDENTIFIER
       end
