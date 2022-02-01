@@ -377,7 +377,7 @@ module Axal
              when TokenKind::LEFT_PAREN
                parse_grouped_expr
              when TokenKind::EXTERNAL_CODE
-              parse_external_code  
+               parse_external_code
              when TokenKind::NEW_LINE, TokenKind::EOF
                parse_terminator
              else

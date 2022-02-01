@@ -111,9 +111,9 @@ describe Lexer do
         SOURCE
 
         expected_token_types = [TokenKind::EXTERNAL_CODE, TokenKind::EOF]
-        expected_string = Token.new(TokenKind::EXTERNAL_CODE, 
-        "`\n  var a = \"hello\";\n  function name(n) { return n + \" there\";}\n  name(a);\n  `",
-        "\n  var a = \"hello\";\n  function name(n) { return n + \" there\";}\n  name(a);\n  ", Location.new(4, 2, 78))
+        expected_string = Token.new(TokenKind::EXTERNAL_CODE,
+          "`\n  var a = \"hello\";\n  function name(n) { return n + \" there\";}\n  name(a);\n  `",
+          "\n  var a = \"hello\";\n  function name(n) { return n + \" there\";}\n  name(a);\n  ", Location.new(4, 2, 78))
 
         lexer = Lexer.new(source)
         lexer.start_tokenization

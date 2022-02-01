@@ -71,7 +71,7 @@ module Axal
       when AST::Str
         interpret_string(node.as(AST::Str))
       when AST::ExternalCode
-        interpret_external_code(node.as(AST::ExternalCode))  
+        interpret_external_code(node.as(AST::ExternalCode))
       when AST::UnaryOperator
         interpret_unary_operator(node.as(AST::UnaryOperator))
       when AST::VarBinding
@@ -101,16 +101,16 @@ module Axal
       if fn_def.params != nil
         fn_def.params.each_with_index do |param, i|
           expr = interpret_node(fn_call.args[i])
-            case expr
-            when Float64
-              stack_frame.env[param.name] = expr.as(Float64)
-            when String
-              stack_frame.env[param.name] = expr.as(String)
-            when Bool
-              stack_frame.env[param.name] = expr.as(Bool)
-            else
-              raise "cant assign variable"
-            end
+          case expr
+          when Float64
+            stack_frame.env[param.name] = expr.as(Float64)
+          when String
+            stack_frame.env[param.name] = expr.as(String)
+          when Bool
+            stack_frame.env[param.name] = expr.as(Bool)
+          else
+            raise "cant assign variable"
+          end
           # end
         end
       end
@@ -356,7 +356,7 @@ module Axal
       string.value
     end
 
-    # find variables in the external code and fetch from local or global 
+    # find variables in the external code and fetch from local or global
     def interpret_external_code(external_code)
       rt = Duktape::Runtime.new(500)
       v = replace_external_code_variables(external_code.value.as(String))

@@ -9,7 +9,6 @@
 #     pp e.message
 # end
 
-
 a = "hello `name` and `age`"
 # if md = a.match(/`(.+)?`/)
 #     pp md
@@ -17,7 +16,7 @@ a = "hello `name` and `age`"
 
 vars = a.scan(/`(.+?)`/)
 vars.each do |v|
-    a = a.gsub(v[1], "???")
+  a = a.gsub(v[1], "???")
 end
 
 pp a

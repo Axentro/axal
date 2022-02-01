@@ -47,7 +47,7 @@ module Axal
           token_from_one_or_two_char_lex(c)
         elsif c == %Q{"}
           string
-        elsif c == %Q{`} 
+        elsif c == %Q{`}
           external_code
         elsif digit?(c)
           number
