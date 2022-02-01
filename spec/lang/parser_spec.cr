@@ -18,6 +18,7 @@ describe Parser do
   axal_fn_def = AST::FunctionDefinition
   axal_mod_def = AST::ModuleDefinition
   axal_fn_call = AST::FunctionCall
+  axal_ext_code = AST::ExternalCode
 
   describe "parse" do
     context "variable binding" do
@@ -601,6 +602,32 @@ describe Parser do
         expected_program.expressions << fn_call
         parser = Parser.new(tokens_from_source("fn_call_ok_3.axal"))
 
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+    end
+
+    context "external code" do
+      it "produces the expected AST for external code with single line" do
+        expected_program = axal_prog.new
+        external_code = axal_ext_code.new("1+1")
+        expected_program.expressions << external_code
+
+        parser = Parser.new(tokens_from_source("external_code_ok_1.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "produces the expected AST for external code with multi line" do
+        expected_program = axal_prog.new
+        source = "\nfunction test(a,b,c) { return a + b + c; }\ntest(1,2,3)\n"
+
+        external_code = axal_ext_code.new(source)
+        expected_program.expressions << external_code
+
+        parser = Parser.new(tokens_from_source("external_code_ok_2.axal"))
         parser.parse
 
         parser.ast.should eq(expected_program)

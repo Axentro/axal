@@ -64,60 +64,97 @@ describe Lexer do
         lexer.tokens.first.should eq(expected_string)
       end
     end
-  end
 
-  context "number literals" do
-    it "produces the expected token and the expected value" do
-      source = <<-SOURCE
+    context "number literals" do
+      it "produces the expected token and the expected value" do
+        source = <<-SOURCE
         42
         42.42
       SOURCE
 
-      expected_token_types = [TokenKind::NUMBER, TokenKind::NEW_LINE, TokenKind::NUMBER, TokenKind::EOF]
-      expected_integer = Token.new(TokenKind::NUMBER, "42", 42.0, Location.new(0, 2, 2))
-      expected_float = Token.new(TokenKind::NUMBER, "42.42", 42.42, Location.new(1, 7, 5))
+        expected_token_types = [TokenKind::NUMBER, TokenKind::NEW_LINE, TokenKind::NUMBER, TokenKind::EOF]
+        expected_integer = Token.new(TokenKind::NUMBER, "42", 42.0, Location.new(0, 2, 2))
+        expected_float = Token.new(TokenKind::NUMBER, "42.42", 42.42, Location.new(1, 7, 5))
 
-      lexer = Lexer.new(source)
-      lexer.start_tokenization
+        lexer = Lexer.new(source)
+        lexer.start_tokenization
 
-      lexer.tokens.map(&.kind).should eq(expected_token_types)
-      lexer.tokens[0].should eq(expected_integer)
-      lexer.tokens[2].should eq(expected_float)
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+        lexer.tokens[0].should eq(expected_integer)
+        lexer.tokens[2].should eq(expected_float)
+      end
     end
-  end
 
-  context "identifiers" do
-    it "produces the expected tokens" do
-      source = <<-SOURCE
+    context "external code" do
+      it "produces the expected token and the expected value" do
+        source = <<-SOURCE
+          `1+1`
+        SOURCE
+
+        expected_token_types = [TokenKind::EXTERNAL_CODE, TokenKind::EOF]
+        expected_string = Token.new(TokenKind::EXTERNAL_CODE, %Q{`1+1`}, "1+1", Location.new(0, 2, 5))
+
+        lexer = Lexer.new(source)
+        lexer.start_tokenization
+
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+        lexer.tokens.first.should eq(expected_string)
+      end
+
+      it "produces the expected token and the expected value for multiple lines" do
+        source = <<-SOURCE
+          `
+          var a = "hello";
+          function name(n) { return n + " there";}
+          name(a);
+          `
+        SOURCE
+
+        expected_token_types = [TokenKind::EXTERNAL_CODE, TokenKind::EOF]
+        expected_string = Token.new(TokenKind::EXTERNAL_CODE, 
+        "`\n  var a = \"hello\";\n  function name(n) { return n + \" there\";}\n  name(a);\n  `",
+        "\n  var a = \"hello\";\n  function name(n) { return n + \" there\";}\n  name(a);\n  ", Location.new(4, 2, 78))
+
+        lexer = Lexer.new(source)
+        lexer.start_tokenization
+
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+        lexer.tokens.first.should eq(expected_string)
+      end
+    end
+
+    context "identifiers" do
+      it "produces the expected tokens" do
+        source = <<-SOURCE
         if true
           my_var = 42
         end
       SOURCE
 
-      expected_token_types = [
-        TokenKind::IF, TokenKind::TRUE, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::NUMBER,
-        TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF,
-      ]
-      i1 = Token.new(TokenKind::IF, "if", nil, Location.new(0, 2, 2))
-      i2 = Token.new(TokenKind::TRUE, "true", nil, Location.new(0, 5, 4))
-      i3 = Token.new(TokenKind::IDENTIFIER, "my_var", nil, Location.new(1, 14, 6))
-      i4 = Token.new(TokenKind::END, "end", nil, Location.new(2, 28, 3))
+        expected_token_types = [
+          TokenKind::IF, TokenKind::TRUE, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::NUMBER,
+          TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF,
+        ]
+        i1 = Token.new(TokenKind::IF, "if", nil, Location.new(0, 2, 2))
+        i2 = Token.new(TokenKind::TRUE, "true", nil, Location.new(0, 5, 4))
+        i3 = Token.new(TokenKind::IDENTIFIER, "my_var", nil, Location.new(1, 14, 6))
+        i4 = Token.new(TokenKind::END, "end", nil, Location.new(2, 28, 3))
 
-      lexer = Lexer.new(source)
-      lexer.start_tokenization
+        lexer = Lexer.new(source)
+        lexer.start_tokenization
 
-      lexer.tokens.map(&.kind).should eq(expected_token_types)
-      lexer.tokens[0].should eq(i1)
-      lexer.tokens[1].should eq(i2)
-      lexer.tokens[3].should eq(i3)
-      lexer.tokens[7].should eq(i4)
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+        lexer.tokens[0].should eq(i1)
+        lexer.tokens[1].should eq(i2)
+        lexer.tokens[3].should eq(i3)
+        lexer.tokens[7].should eq(i4)
+      end
     end
-  end
 
-  context "modules" do
-    it "produces the correct tokens" do
-      source = <<-SOURCE
+    context "modules" do
+      it "produces the correct tokens" do
+        source = <<-SOURCE
         mod mymodule
           fn go
             true
@@ -125,22 +162,22 @@ describe Lexer do
         end
       SOURCE
 
-      lexer = Lexer.new(source)
+        lexer = Lexer.new(source)
 
-      expected_token_types = [
-        TokenKind::MOD, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::FN,
-        TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::TRUE, TokenKind::NEW_LINE,
-        TokenKind::END, TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF,
-      ]
-      lexer.start_tokenization
+        expected_token_types = [
+          TokenKind::MOD, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::FN,
+          TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::TRUE, TokenKind::NEW_LINE,
+          TokenKind::END, TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF,
+        ]
+        lexer.start_tokenization
 
-      lexer.tokens.map(&.kind).should eq(expected_token_types)
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+      end
     end
-  end
 
-  context "when the source is a program with valid lexemes only" do
-    it "produces the appropriate tokens" do
-      source = <<-SOURCE
+    context "when the source is a program with valid lexemes only" do
+      it "produces the appropriate tokens" do
+        source = <<-SOURCE
         fn sum_integers: first_integer, last_integer
           i = first_integer
           sum = 0
@@ -156,35 +193,36 @@ describe Lexer do
         sum_integers(1, 100)
       SOURCE
 
-      lexer = Lexer.new(source)
+        lexer = Lexer.new(source)
 
-      expected_token_types = [
-        TokenKind::FN, TokenKind::IDENTIFIER, TokenKind::COLON, TokenKind::IDENTIFIER, TokenKind::COMMA, TokenKind::IDENTIFIER, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::IDENTIFIER, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::NUMBER, TokenKind::NEW_LINE,
-        TokenKind::WHILE, TokenKind::IDENTIFIER, TokenKind::LESS_THAN_OR_EQUAL, TokenKind::IDENTIFIER, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::IDENTIFIER, TokenKind::PLUS, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::IDENTIFIER, TokenKind::PLUS, TokenKind::NUMBER, TokenKind::NEW_LINE,
-        TokenKind::END, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::LEFT_PAREN, TokenKind::IDENTIFIER, TokenKind::RIGHT_PAREN, TokenKind::NEW_LINE,
-        TokenKind::END, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
-        TokenKind::IDENTIFIER, TokenKind::LEFT_PAREN, TokenKind::NUMBER, TokenKind::COMMA, TokenKind::NUMBER, TokenKind::RIGHT_PAREN,
-        TokenKind::EOF,
-      ]
+        expected_token_types = [
+          TokenKind::FN, TokenKind::IDENTIFIER, TokenKind::COLON, TokenKind::IDENTIFIER, TokenKind::COMMA, TokenKind::IDENTIFIER, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::IDENTIFIER, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::NUMBER, TokenKind::NEW_LINE,
+          TokenKind::WHILE, TokenKind::IDENTIFIER, TokenKind::LESS_THAN_OR_EQUAL, TokenKind::IDENTIFIER, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::IDENTIFIER, TokenKind::PLUS, TokenKind::IDENTIFIER, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::EQUALS, TokenKind::IDENTIFIER, TokenKind::PLUS, TokenKind::NUMBER, TokenKind::NEW_LINE,
+          TokenKind::END, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::LEFT_PAREN, TokenKind::IDENTIFIER, TokenKind::RIGHT_PAREN, TokenKind::NEW_LINE,
+          TokenKind::END, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
+          TokenKind::IDENTIFIER, TokenKind::LEFT_PAREN, TokenKind::NUMBER, TokenKind::COMMA, TokenKind::NUMBER, TokenKind::RIGHT_PAREN,
+          TokenKind::EOF,
+        ]
 
-      lexer.start_tokenization
-
-      lexer.tokens.map(&.kind).should eq(expected_token_types)
-    end
-  end
-
-  context "when the source contains unknown characters" do
-    it "raises an error" do
-      source = "my_var = 1\n@"
-      lexer = Lexer.new(source)
-
-      expect_raises(Exception, "Unknown character @") do
         lexer.start_tokenization
+
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+      end
+    end
+
+    context "when the source contains unknown characters" do
+      it "raises an error" do
+        source = "my_var = 1\n@"
+        lexer = Lexer.new(source)
+
+        expect_raises(Exception, "Unknown character @") do
+          lexer.start_tokenization
+        end
       end
     end
   end

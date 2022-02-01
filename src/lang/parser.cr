@@ -146,24 +146,12 @@ module Axal
       AST::QualifiedIdentifier.new(identifiers)
     end
 
-    # def parse_function_params
-    #   consume
-    #   return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
-
-    #   identifiers = [] of AST::Identifier
-    #   identifiers << AST::Identifier.new(current.lexeme)
-
-    #   while nxt.kind == TokenKind::COMMA
-    #     consume
-    #     return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
-    #     identifiers << AST::Identifier.new(current.lexeme)
-    #   end
-
-    #   identifiers
-    # end
-
     def parse_string
       AST::Str.new(current.literal)
+    end
+
+    def parse_external_code
+      AST::ExternalCode.new(current.literal)
     end
 
     def parse_number
@@ -388,6 +376,8 @@ module Axal
                parse_repetition
              when TokenKind::LEFT_PAREN
                parse_grouped_expr
+             when TokenKind::EXTERNAL_CODE
+              parse_external_code  
              when TokenKind::NEW_LINE, TokenKind::EOF
                parse_terminator
              else

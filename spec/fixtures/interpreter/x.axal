@@ -1,0 +1,11 @@
+mod Array
+  fn new : array 
+    n
+  end
+end
+
+println(Array.size(2))
+
+arry = [1,2,3]
+
+arry.each 

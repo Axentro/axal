@@ -1,0 +1,8 @@
+# should ignore this global one and use the local one
+num = 1 
+
+fn go : num
+ `1 + :num:`
+end
+
+println(go(1))

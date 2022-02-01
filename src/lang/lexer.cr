@@ -47,6 +47,8 @@ module Axal
           token_from_one_or_two_char_lex(c)
         elsif c == %Q{"}
           string
+        elsif c == %Q{`} 
+          external_code
         elsif digit?(c)
           number
         elsif alpha_numeric?(c)
@@ -112,6 +114,21 @@ module Axal
       literal = @source[(@lexeme_start_p + 1)..(@next_p - 2)].to_s
 
       Token.new(TokenKind::STRING, lexeme, literal, current_location)
+    end
+
+    def external_code
+      while lookahead != %Q{`} && source_uncompleted?
+        @line += 1 if lookahead == "\n"
+        consume
+      end
+      raise "Unterminated string error." if source_completed?
+
+      consume # consuming the closing '`'.
+      lexeme = @source[(@lexeme_start_p)..(@next_p - 1)].to_s
+      # the actual value of the string is the content between the double quotes.
+      literal = @source[(@lexeme_start_p + 1)..(@next_p - 2)].to_s
+
+      Token.new(TokenKind::EXTERNAL_CODE, lexeme, literal, current_location)
     end
 
     def number

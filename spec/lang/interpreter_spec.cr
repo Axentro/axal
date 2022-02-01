@@ -141,16 +141,17 @@ describe Interpreter do
         interpreter.output[1].should eq("param_2")
       end
 
-      it "does assign to a global var when a param uses the same name of an existing global var" do
+      it "does not assign to a global var when a param uses the same name of an existing global var" do
         interpreter = Interpreter.new
 
         interpreter.interpret(ast_from_source("scope_ok_4.axal"))
 
-        interpreter.output.size.should eq(3)
+        interpreter.output.size.should eq(4)
         interpreter.output[0].should eq("A global var")
         interpreter.output[1].should eq("fn call arg 1")
         interpreter.output[2].should eq("fn call arg 2")
-        interpreter.env["param_1"].should eq("fn call arg 1")
+        interpreter.output[3].should eq("A global var")
+
         interpreter.env.has_key?("param_2").should eq(false)
       end
     end
@@ -358,6 +359,33 @@ describe Interpreter do
 
         interpreter.output.size.should eq(1)
         interpreter.output.first.should eq("5050.0")
+      end
+    end
+
+    context "external code" do
+      it "correctly interprets standalone external code" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("external_code_ok_1.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("2.0")
+      end
+      it "correctly process external code with local variables" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("external_code_ok_2.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("2.0")
+      end
+      it "correctly process external code with global variables" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("external_code_ok_3.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("2.0")
       end
     end
   end

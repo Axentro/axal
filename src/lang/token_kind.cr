@@ -107,6 +107,7 @@ module Axal
     STRING
     NUMBER
     IDENTIFIER
+    EXTERNAL_CODE
 
     AND
     ELSE

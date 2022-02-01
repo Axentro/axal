@@ -70,6 +70,8 @@ module Axal
         interpret_return(node.as(AST::Return))
       when AST::Str
         interpret_string(node.as(AST::Str))
+      when AST::ExternalCode
+        interpret_external_code(node.as(AST::ExternalCode))  
       when AST::UnaryOperator
         interpret_unary_operator(node.as(AST::UnaryOperator))
       when AST::VarBinding
@@ -95,25 +97,10 @@ module Axal
       end
 
       # Applying the values passed in this particular function call to the respective defined parameters.
+      # Always assign a local variable for each param
       if fn_def.params != nil
         fn_def.params.each_with_index do |param, i|
           expr = interpret_node(fn_call.args[i])
-          if @env.has_key?(param.name)
-            # A global variable is already defined. We assign the passed in value to it.
-            case expr
-            when Float64
-              @env[param.name] = expr.as(Float64)
-            when String
-              @env[param.name] = expr.as(String)
-            when Bool
-              @env[param.name] = expr.as(Bool)
-            else
-              raise "cant assign variable"
-            end
-            #   env[param.name] = interpret_node(fn_call.args[i].as(AST::Expression))
-          else
-            # A global variable with the same name doesn't exist. We create a new local variable.
-            #   stack_frame.env[param.name] = interpret_node(fn_call.args[i])
             case expr
             when Float64
               stack_frame.env[param.name] = expr.as(Float64)
@@ -124,7 +111,7 @@ module Axal
             else
               raise "cant assign variable"
             end
-          end
+          # end
         end
       end
     end
@@ -134,12 +121,13 @@ module Axal
     end
 
     def interpret_identifier(identifier)
-      if @env.has_key?(identifier.name)
-        # Global variable.
-        @env[identifier.name]
-      elsif @call_stack.size > 0 && @call_stack.last.env.has_key?(identifier.name)
+      # First process local variables and if not found locally find globals
+      if @call_stack.size > 0 && @call_stack.last.env.has_key?(identifier.name)
         # Local variable.
         @call_stack.last.env[identifier.name]
+      elsif @env.has_key?(identifier.name)
+        # Global variable.
+        @env[identifier.name]
       else
         # Undefined variable.
         raise Error::Runtime::UndefinedVariable.new(identifier.name)
@@ -162,7 +150,7 @@ module Axal
           when Nil
             @env[var_binding.var_name_as_str] = expr.as(Nil)
           else
-            raise "cant assign variable inside function for global var"
+            raise "cant assign variable inside function for global var with value #{expr}"
           end
         else
           case expr
@@ -175,7 +163,7 @@ module Axal
           when Nil
             @call_stack.last.env[var_binding.var_name_as_str] = expr.as(Nil)
           else
-            raise "cant assign variable inside function for local var"
+            raise "cant assign variable inside function for local var with value #{expr}"
           end
         end
       else
@@ -190,7 +178,7 @@ module Axal
         when Nil
           @env[var_binding.var_name_as_str] = expr.as(Nil)
         else
-          raise "cant assign variable outside function"
+          raise "cant assign variable outside function with value: #{expr}"
         end
       end
     end
@@ -366,6 +354,40 @@ module Axal
 
     def interpret_string(string)
       string.value
+    end
+
+    # find variables in the external code and fetch from local or global 
+    def interpret_external_code(external_code)
+      rt = Duktape::Runtime.new(500)
+      v = replace_external_code_variables(external_code.value.as(String))
+      rt.eval(v)
+    rescue e : Exception
+      raise "external code error: #{e.message}"
+    end
+
+    def replace_external_code_variables(external_code)
+      vars = external_code.scan(/\:(.+?)\:/)
+      vars.each do |v|
+        param = v[1]
+        r = fetch_ext_code_replacement_value(param)
+        external_code = external_code.gsub(":#{param}:", r)
+      end
+      external_code
+    end
+
+    def fetch_ext_code_replacement_value(param)
+      # variables.map
+      # First process local variables and if not found locally find globals
+      if @call_stack.size > 0 && @call_stack.last.env.has_key?(param)
+        # Local variable.
+        @call_stack.last.env[param]
+      elsif @env.has_key?(param)
+        # Global variable.
+        @env[param]
+      else
+        # Undefined variable.
+        raise Error::Runtime::UndefinedVariable.new(param)
+      end
     end
 
     # Built in functions

@@ -1,0 +1,7 @@
+num = 1 
+
+fn go
+ `1 + :num:`
+end
+
+println(go())
