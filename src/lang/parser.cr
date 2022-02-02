@@ -192,6 +192,37 @@ module Axal
       fn
     end
 
+    def parse_array
+      AST::ArrayList.new(parse_array_content.not_nil!)
+    end
+
+    def parse_array_content
+      items = [] of AST::Expression
+
+      # empty array
+      if nxt.kind == TokenKind::RIGHT_BRACKET
+        consume
+        return items
+      end
+
+      consume
+      expr = parse_expr_recursively
+      unless expr.nil?
+        items << expr.not_nil!
+      end
+
+      while nxt.kind == TokenKind::COMMA
+        consume(2)
+        expr = parse_expr_recursively
+        unless expr.nil?
+          items << expr.not_nil!
+        end
+      end
+
+      return unless consume_if_nxt_is(TokenKind::RIGHT_BRACKET)
+      items.not_nil!
+    end
+
     def parse_module_definition
       return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
       mod = AST::ModuleDefinition.new(AST::Identifier.new(current.lexeme))
@@ -366,6 +397,8 @@ module Axal
                parse_boolean
              when TokenKind::NIL
                parse_nil
+             when TokenKind::LEFT_BRACKET
+               parse_array
              when TokenKind::FN
                parse_function_definition
              when TokenKind::MOD

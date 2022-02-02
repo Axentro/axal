@@ -6,7 +6,7 @@ describe Lexer do
       it "produces the expected tokens" do
         source = <<-SOURCE
           ( ) . - + / * 
-          ! = > <
+          ! = > < [ ]
           \t
 
           \r
@@ -16,6 +16,7 @@ describe Lexer do
           TokenKind::FORWARD_SLASH, TokenKind::ASTERISK,
           TokenKind::NEW_LINE,
           TokenKind::EXCLAMATION, TokenKind::EQUALS, TokenKind::GREATER_THAN, TokenKind::LESS_THAN,
+          TokenKind::LEFT_BRACKET, TokenKind::RIGHT_BRACKET,
           TokenKind::NEW_LINE, TokenKind::NEW_LINE, TokenKind::NEW_LINE, TokenKind::EOF,
         ]
         lexer = Lexer.new(source)

@@ -362,6 +362,17 @@ describe Interpreter do
       end
     end
 
+    context "arrays" do
+      it "correctly interprets arrays" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("array_ok_1.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("[1.0, 2.0, 3.0, [5.0, 6.0]]")
+      end
+    end
+
     context "external code" do
       it "correctly interprets standalone external code" do
         interpreter = Interpreter.new

@@ -19,6 +19,7 @@ describe Parser do
   axal_mod_def = AST::ModuleDefinition
   axal_fn_call = AST::FunctionCall
   axal_ext_code = AST::ExternalCode
+  axal_array = AST::ArrayList
 
   describe "parse" do
     context "variable binding" do
@@ -94,6 +95,26 @@ describe Parser do
         expected_program.expressions << axal_bool.new(false)
 
         parser = Parser.new(tokens_from_source("standalone_boolean_ok.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+    end
+
+    context "standalone sigle array" do
+      it "generates the expected AST" do
+        expected_program = axal_prog.new
+
+        array = axal_array.new(
+          [
+            axal_num.new(1), axal_num.new(2), axal_num.new(3),
+            axal_array.new([axal_num.new(5), axal_num.new(6), axal_num.new(7), axal_array.new]),
+          ]
+        )
+
+        expected_program.expressions << array
+
+        parser = Parser.new(tokens_from_source("standalone_array_ok.axal"))
         parser.parse
 
         parser.ast.should eq(expected_program)

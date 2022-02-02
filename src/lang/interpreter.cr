@@ -2,12 +2,12 @@ module Axal
   class Interpreter
     getter program : AST::Program? = nil
     getter output : Array(String)
-    getter env : Hash(String, (AST::Expression | Bool | Float64 | String | Nil))
+    getter env : Hash(String, (AST::Expression | X))
     property unwind_call_stack : Int32
 
     def initialize
       @output = [] of String
-      @env = {} of String => AST::Expression | Bool | Float64 | String | Nil
+      @env = {} of String => AST::Expression | X
       @call_stack = [] of Runtime::StackFrame
       @unwind_call_stack = -1
     end
@@ -76,6 +76,8 @@ module Axal
         interpret_unary_operator(node.as(AST::UnaryOperator))
       when AST::VarBinding
         interpret_var_binding((node.as(AST::VarBinding)))
+      when AST::ArrayList
+        interpret_array_list(node.as(AST::ArrayList))
       end
     end
 
@@ -100,18 +102,7 @@ module Axal
       # Always assign a local variable for each param
       if fn_def.params != nil
         fn_def.params.each_with_index do |param, i|
-          expr = interpret_node(fn_call.args[i])
-          case expr
-          when Float64
-            stack_frame.env[param.name] = expr.as(Float64)
-          when String
-            stack_frame.env[param.name] = expr.as(String)
-          when Bool
-            stack_frame.env[param.name] = expr.as(Bool)
-          else
-            raise "cant assign variable"
-          end
-          # end
+          stack_frame.env[param.name] = interpret_node(fn_call.args[i]).as(X)
         end
       end
     end
@@ -140,46 +131,13 @@ module Axal
         # We are inside a function. If the name points to a global var, we assign the value to it.
         # Otherwise, we create and / or assign to a local var.
         if @env.has_key?(var_binding.var_name_as_str)
-          case expr
-          when Float64
-            @env[var_binding.var_name_as_str] = expr.as(Float64)
-          when String
-            @env[var_binding.var_name_as_str] = expr.as(String)
-          when Bool
-            @env[var_binding.var_name_as_str] = expr.as(Bool)
-          when Nil
-            @env[var_binding.var_name_as_str] = expr.as(Nil)
-          else
-            raise "cant assign variable inside function for global var with value #{expr}"
-          end
+          @env[var_binding.var_name_as_str] = expr.as(X)
         else
-          case expr
-          when Float64
-            @call_stack.last.env[var_binding.var_name_as_str] = expr.as(Float64)
-          when String
-            @call_stack.last.env[var_binding.var_name_as_str] = expr.as(String)
-          when Bool
-            @call_stack.last.env[var_binding.var_name_as_str] = expr.as(Bool)
-          when Nil
-            @call_stack.last.env[var_binding.var_name_as_str] = expr.as(Nil)
-          else
-            raise "cant assign variable inside function for local var with value #{expr}"
-          end
+          @call_stack.last.env[var_binding.var_name_as_str] = expr.as(X)
         end
       else
         # We are not inside a function. Therefore, we create and / or assign to a global var.
-        case expr
-        when Float64
-          @env[var_binding.var_name_as_str] = expr.as(Float64)
-        when String
-          @env[var_binding.var_name_as_str] = expr.as(String)
-        when Bool
-          @env[var_binding.var_name_as_str] = expr.as(Bool)
-        when Nil
-          @env[var_binding.var_name_as_str] = expr.as(Nil)
-        else
-          raise "cant assign variable outside function with value: #{expr}"
-        end
+        @env[var_binding.var_name_as_str] = expr.as(X)
       end
     end
 
@@ -254,6 +212,63 @@ module Axal
     end
 
     def interpret_binary_operator(binary_op)
+      lhs = interpret_node(binary_op.left.not_nil!)
+
+      if binary_op.operator == TokenKind::OR
+        lhs || interpret_node(binary_op.right.not_nil!).as(X)
+      elsif binary_op.operator == TokenKind::AND
+        lhs && interpret_node(binary_op.right.not_nil!).as(X)
+      elsif binary_op.operator == TokenKind::DOUBLE_EQUALS
+        lhs == interpret_node(binary_op.right.not_nil!).as(X)
+      else
+        rhs = interpret_node(binary_op.right.not_nil!)
+        if lhs.is_a?(Float64) && rhs.is_a?(Float64)
+          case binary_op.operator
+          when TokenKind::PLUS
+            lhs + rhs
+          when TokenKind::HYPHEN
+            lhs - rhs
+          when TokenKind::ASTERISK
+            lhs * rhs
+          when TokenKind::FORWARD_SLASH
+            lhs / rhs
+          when TokenKind::NOT_EQUAL
+            lhs != rhs
+          when TokenKind::GREATER_THAN
+            lhs > rhs
+          when TokenKind::LESS_THAN
+            lhs < rhs
+          when TokenKind::GREATER_THAN_OR_EQUAL
+            lhs >= rhs
+          when TokenKind::LESS_THAN_OR_EQUAL
+            lhs <= rhs
+          else
+            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 numbers (not #{lhs.class} and #{rhs.class})"
+          end
+        elsif lhs.is_a?(String) && rhs.is_a?(String)
+          case binary_op.operator
+          when TokenKind::PLUS
+            lhs + rhs
+          when TokenKind::NOT_EQUAL
+            lhs != rhs
+          when TokenKind::GREATER_THAN
+            lhs > rhs
+          when TokenKind::LESS_THAN
+            lhs < rhs
+          when TokenKind::GREATER_THAN_OR_EQUAL
+            lhs >= rhs
+          when TokenKind::LESS_THAN_OR_EQUAL
+            lhs <= rhs
+          else
+            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
+          end
+        else
+          raise "The operator '#{binary_op.operator.to_s}' cannot be applied to (#{lhs.class} and #{rhs.class})"
+        end
+      end
+    end
+
+    def interpret_binary_operator2(binary_op)
       lhs = interpret_node(binary_op.left.not_nil!)
 
       if binary_op.operator == TokenKind::OR
@@ -354,6 +369,17 @@ module Axal
 
     def interpret_string(string)
       string.value
+    end
+
+    def interpret_array_list(array : AST::ArrayList) : X
+      array.items.map do |item|
+        case item
+        when AST::ArrayList
+          interpret_array_list(item).as(X)
+        else
+          interpret_node(item).as(X)
+        end
+      end
     end
 
     # find variables in the external code and fetch from local or global
