@@ -1,0 +1,9 @@
+fn go : num
+ 1 + num
+end
+
+fn x : n, f
+  f(n)
+end
+
+println(x(1, go))

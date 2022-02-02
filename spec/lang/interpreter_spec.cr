@@ -42,6 +42,30 @@ describe Interpreter do
         interpreter.output[1].should eq("hey")
         interpreter.env["my_var"].should eq("hey")
       end
+
+      it "assigns a function definition to a global variable" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("var_binding_ok_2.axal"))
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("2.0")
+      end
+
+      it "assigns a function definition to a function parameter" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("var_binding_ok_3.axal"))
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("2.0")
+      end
+
+      it "another variable binding with function definition" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("var_binding_ok_4.axal"))
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("3.0")
+      end
     end
 
     context "module definitions" do
@@ -398,6 +422,12 @@ describe Interpreter do
         interpreter.output.size.should eq(1)
         interpreter.output.first.should eq("2.0")
       end
+    end
+
+    it "x" do
+      interpreter = Interpreter.new
+      interpreter.interpret(ast_from_source("x.axal"))
+      pp interpreter.output
     end
   end
 end

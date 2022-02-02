@@ -40,5 +40,7 @@ TODO: Write development instructions here
 
 ## TODO
 
-- implement Array
 - implement Record 
+- implement encode array of record or record to Json
+- implement decode json to array of record or record
+- implement http get

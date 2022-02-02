@@ -1,0 +1,10 @@
+fn x : a
+  a + 2
+end
+
+fn go : n
+   x(n)
+end
+
+println(go(1))
+

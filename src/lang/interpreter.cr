@@ -82,10 +82,31 @@ module Axal
     end
 
     def fetch_function_definition(fn_name : String)
-      fn_def = @env[fn_name]?
+      fn_def = if @call_stack.size > 0 && @call_stack.last.env.has_key?(fn_name)
+                 # Local variable.
+                 @call_stack.last.env[fn_name]
+               elsif @env.has_key?(fn_name)
+                 # Global variable.
+                 @env[fn_name]
+               end
+
       raise Error::Runtime::UndefinedFunction.new(fn_name) if fn_def.nil?
 
       fn_def.as(AST::FunctionDefinition)
+    end
+
+    def fetch_ext_code_replacement_value(param)
+      # First process local variables and if not found locally find globals
+      if @call_stack.size > 0 && @call_stack.last.env.has_key?(param)
+        # Local variable.
+        @call_stack.last.env[param]
+      elsif @env.has_key?(param)
+        # Global variable.
+        @env[param]
+      else
+        # Undefined variable.
+        raise Error::Runtime::UndefinedVariable.new(param)
+      end
     end
 
     def assign_function_args_to_params(stack_frame)
@@ -102,7 +123,7 @@ module Axal
       # Always assign a local variable for each param
       if fn_def.params != nil
         fn_def.params.each_with_index do |param, i|
-          stack_frame.env[param.name] = interpret_node(fn_call.args[i]).as(X)
+          stack_frame.env[param.name] = interpret_node(fn_call.args[i]).as(X | AST::FunctionDefinition)
         end
       end
     end
@@ -131,13 +152,13 @@ module Axal
         # We are inside a function. If the name points to a global var, we assign the value to it.
         # Otherwise, we create and / or assign to a local var.
         if @env.has_key?(var_binding.var_name_as_str)
-          @env[var_binding.var_name_as_str] = expr.as(X)
+          @env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition)
         else
-          @call_stack.last.env[var_binding.var_name_as_str] = expr.as(X)
+          @call_stack.last.env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition)
         end
       else
         # We are not inside a function. Therefore, we create and / or assign to a global var.
-        @env[var_binding.var_name_as_str] = expr.as(X)
+        @env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition)
       end
     end
 

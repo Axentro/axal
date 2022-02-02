@@ -16,11 +16,3 @@ mod Array
     end
   end
 end
-
-fn func : item 
-  println(item)
-end
-
-Array.each([1,2,3], func)
-
-

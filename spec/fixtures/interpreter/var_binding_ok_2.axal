@@ -1,0 +1,7 @@
+fn go : num
+  1 + num
+end
+
+a = go
+
+println(a(1))
