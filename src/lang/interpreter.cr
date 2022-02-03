@@ -78,6 +78,8 @@ module Axal
         interpret_var_binding((node.as(AST::VarBinding)))
       when AST::ArrayList
         interpret_array_list(node.as(AST::ArrayList))
+      when AST::FunctionChain
+        interpret_function_chain(node.as(AST::FunctionChain))
       end
     end
 
@@ -128,6 +130,69 @@ module Axal
       end
     end
 
+    def interpret_function_chain(chain : AST::FunctionChain)
+      fcs = chain.function_calls
+
+      # can only chain println as the last one - raise error if println is not last
+      fcs.map_with_index { |fc, i| {name: fc.name.name, pos: i + 1} }.select { |np| np[:name] == "println" }
+        .each { |np| raise "println function must be last in the chain (currently position #{np[:pos]})" if np[:pos] != fcs.size }
+
+      current_result = nil
+      fcs.in_groups_of(2).each_with_index do |grp, i|
+        if i == 0
+          current_result = interpret_function_call(grp.first.not_nil!)
+          current_result = interpret_chained_function_call(grp.last.not_nil!, current_result.not_nil!)
+        else
+          current_result = interpret_chained_function_call(grp.first.not_nil!, current_result.not_nil!)
+          if !grp.last.nil?
+            current_result = interpret_chained_function_call(grp.last.not_nil!, current_result.not_nil!)
+          end
+        end
+      end
+      current_result.not_nil!
+    end
+
+    def interpret_chained_function_call(fn_call : AST::FunctionCall, param1)
+      if fn_call.function_name_as_str == "println"
+        return println_chained(param1)
+      end
+
+      fn_def = fetch_function_definition(fn_call.function_name_as_str)
+
+      stack_frame = Runtime::StackFrame.new(fn_def, fn_call)
+
+      assign_function_args_to_params_for_chained_call(stack_frame, param1)
+
+      # Executing the function body.
+      @call_stack << stack_frame
+      value = interpret_nodes(fn_def.body.not_nil!.expressions)
+      @call_stack.pop
+      value
+    end
+
+    def assign_function_args_to_params_for_chained_call(stack_frame, param1)
+      fn_def = stack_frame.fn_def.as(AST::FunctionDefinition)
+      fn_call = stack_frame.fn_call.as(AST::FunctionCall)
+
+      given = fn_call.args.size + 1
+      expected = fn_def.params.size
+      if given != expected
+        raise Error::Runtime::WrongNumArg.new(fn_def.function_name_as_str, given, expected)
+      end
+
+      # Applying the values passed in this particular function call to the respective defined parameters.
+      # Pass the result of the previous function
+      if fn_def.params != nil
+        fn_def.params.each_with_index do |param, i|
+          if i == 0
+            stack_frame.env[param.name] = param1.as(X)
+          else
+            stack_frame.env[param.name] = interpret_node(fn_call.args[i - 1]).as(X | AST::FunctionDefinition)
+          end
+        end
+      end
+    end
+
     def return_detected?(node)
       node.type == "return"
     end
@@ -152,13 +217,13 @@ module Axal
         # We are inside a function. If the name points to a global var, we assign the value to it.
         # Otherwise, we create and / or assign to a local var.
         if @env.has_key?(var_binding.var_name_as_str)
-          @env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition)
+          @env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition | AST::FunctionChain)
         else
-          @call_stack.last.env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition)
+          @call_stack.last.env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition | AST::FunctionChain)
         end
       else
         # We are not inside a function. Therefore, we create and / or assign to a global var.
-        @env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition)
+        @env[var_binding.var_name_as_str] = expr.as(X | AST::FunctionDefinition | AST::FunctionChain)
       end
     end
 
@@ -194,7 +259,6 @@ module Axal
 
     def interpret_function_call(fn_call : AST::FunctionCall)
       return if println(fn_call)
-
       fn_def = fetch_function_definition(fn_call.function_name_as_str)
 
       stack_frame = Runtime::StackFrame.new(fn_def, fn_call)
@@ -438,6 +502,12 @@ module Axal
     end
 
     # Built in functions
+    def println_chained(result)
+      output << result.to_s
+      puts result
+      true
+    end
+
     def println(fn_call)
       return false if fn_call.function_name_as_str != "println"
 

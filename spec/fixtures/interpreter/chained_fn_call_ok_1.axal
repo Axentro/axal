@@ -1,0 +1,21 @@
+fn one
+  "one"
+end
+
+fn two : from_one
+  from_one + "_two"
+end
+
+fn three : n, v
+  n + "_three_" + v
+end
+
+fn four : a, b, c
+  a + b + c
+end
+
+r = one() 
+    |> two() 
+    |> three("nice") |> four("_four_", "five") 
+
+println(r)

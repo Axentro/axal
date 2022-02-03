@@ -49,6 +49,8 @@ module Axal
           string
         elsif c == %Q{`}
           external_code
+        elsif c == %Q{|}
+          triangle
         elsif digit?(c)
           number
         elsif alpha_numeric?(c)
@@ -142,6 +144,13 @@ module Axal
 
       lexeme = @source[@lexeme_start_p..(@next_p - 1)].to_s
       Token.new(TokenKind::NUMBER, lexeme, lexeme.to_f64, current_location)
+    end
+
+    def triangle
+      if lookahead == ">"
+        consume
+        Token.new(TokenKind::TRIANGLE, "|>", nil, current_location)
+      end
     end
 
     def identifier

@@ -1,0 +1,14 @@
+fn one
+  "one"
+end
+
+fn two : from_one
+  from_one + "_two"
+end
+
+one() 
+|> println()
+|> two()
+
+
+

@@ -1,26 +1,20 @@
-mod Array
-  fn size : array
-    `:array:.length`
-  end
-
-  fn at : array, index
-   `:array:[:index:]`
-  end
-
-  fn each : array, f
-    i = 0
-    while i < Array.size(array)
-      item = Array.at(array, i)
-      f(item)
-      i = i + 1  
-    end
-  end
+fn one : f, i
+ f(i)
 end
 
-fn func : item 
-  println(item)
+fn print : i
+ println(i)
 end
 
-Array.each([1,2,3], func)
+one(print, "hello")
+
+
+
+
+
+
+
+
+
 
 

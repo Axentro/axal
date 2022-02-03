@@ -20,6 +20,7 @@ describe Parser do
   axal_fn_call = AST::FunctionCall
   axal_ext_code = AST::ExternalCode
   axal_array = AST::ArrayList
+  axal_fn_chain = AST::FunctionChain
 
   describe "parse" do
     context "variable binding" do
@@ -42,6 +43,39 @@ describe Parser do
 
         parser.errors.size.should eq(1)
         parser.errors.last.as(Error::Syntax::UnexpectedToken).next_token.lexeme.should eq("1")
+      end
+
+      it "binds function chain" do
+        expected_program = axal_prog.new
+
+        fn_chain = axal_fn_chain.new([
+          axal_fn_call.new(axal_ident.new("one")),
+          axal_fn_call.new(axal_ident.new("two")),
+        ])
+        var_binding = axal_var_binding.new(axal_ident.new("r"), fn_chain)
+        expected_program.expressions << var_binding
+
+        parser = Parser.new(tokens_from_source("var_binding_ok_2.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "binds function chain with new lines" do
+        expected_program = axal_prog.new
+
+        fn_chain = axal_fn_chain.new([
+          axal_fn_call.new(axal_ident.new("one")),
+          axal_fn_call.new(axal_ident.new("two")),
+          axal_fn_call.new(axal_ident.new("three")),
+        ])
+        var_binding = axal_var_binding.new(axal_ident.new("r"), fn_chain)
+        expected_program.expressions << var_binding
+
+        parser = Parser.new(tokens_from_source("var_binding_ok_3.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
       end
     end
 
@@ -583,6 +617,25 @@ describe Parser do
         expected_program.expressions << fn_def
         parser = Parser.new(tokens_from_source("fn_def_ok_3.axal"))
 
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+    end
+
+    context "chained function calls" do
+      it "generates the expected AST" do
+        expected_program = axal_prog.new
+
+        fc = axal_fn_chain.new([
+          axal_fn_call.new(axal_ident.new("one")),
+          axal_fn_call.new(axal_ident.new("two")),
+          axal_fn_call.new(axal_ident.new("three")),
+        ])
+
+        expected_program.expressions << fc
+
+        parser = Parser.new(tokens_from_source("chained_fn_call_ok_1.axal"))
         parser.parse
 
         parser.ast.should eq(expected_program)

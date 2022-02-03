@@ -30,7 +30,7 @@ describe Lexer do
     context "only two character lexemes" do
       it "produces the expected tokens" do
         source = <<-SOURCE
-        != == >= <=
+        != == >= <= |>
         \t
 
         \r
@@ -38,7 +38,8 @@ describe Lexer do
 
         expected_tokens = [
           TokenKind::NOT_EQUAL, TokenKind::DOUBLE_EQUALS, TokenKind::GREATER_THAN_OR_EQUAL,
-          TokenKind::LESS_THAN_OR_EQUAL, TokenKind::NEW_LINE, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
+          TokenKind::LESS_THAN_OR_EQUAL, TokenKind::TRIANGLE,
+          TokenKind::NEW_LINE, TokenKind::NEW_LINE, TokenKind::NEW_LINE,
           TokenKind::EOF,
         ]
 

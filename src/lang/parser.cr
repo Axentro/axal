@@ -4,6 +4,7 @@ module Axal
     getter next_p : Int32
     getter ast : AST::Program
     getter errors : Array(Exception) = [] of Exception
+    getter chain : AST::FunctionChain? = nil
 
     UNARY_OPERATORS  = [TokenKind::EXCLAMATION, TokenKind::HYPHEN]
     BINARY_OPERATORS = [
@@ -36,6 +37,7 @@ module Axal
     def initialize(@tokens)
       @ast = AST::Program.new
       @next_p = 0
+      @function_calls = [] of AST::FunctionCall
     end
 
     def parse
@@ -91,8 +93,7 @@ module Axal
 
     def lookahead(offset = 1)
       lookahead_p = (@next_p - 1) + offset
-      # return nil if lookahead_p < 0 || lookahead_p >= @tokens.size
-      raise "lookahead error" if lookahead_p < 0 || lookahead_p >= @tokens.size
+      return build_token(TokenKind::EOF, "", current.location) if lookahead_p < 0 || lookahead_p >= @tokens.size
 
       tokens[lookahead_p]
     end
@@ -432,7 +433,26 @@ module Axal
                  parse_binary_operator(expr)
                elsif nxt.kind == TokenKind::LEFT_PAREN
                  consume
-                 parse_function_call(expr)
+                 fn_call = parse_function_call(expr)
+                 @function_calls << fn_call.not_nil!
+
+                 if nxt.kind == TokenKind::TRIANGLE || lookahead(2).kind == TokenKind::TRIANGLE
+                   if @chain.nil?
+                     @chain = AST::FunctionChain.new
+                   end
+                 else
+                   if @function_calls.size > 1
+                     if @chain
+                       @chain.not_nil!.function_calls = @function_calls.dup
+                       @function_calls.clear
+                     end
+
+                     nil
+                   else
+                     @function_calls.clear
+                     fn_call
+                   end
+                 end
                else
                  return expr
                end

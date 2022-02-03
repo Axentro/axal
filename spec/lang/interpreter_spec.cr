@@ -424,6 +424,32 @@ describe Interpreter do
       end
     end
 
+    context "chained function calls" do
+      it "correctly process chained function call" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("chained_fn_call_ok_1.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("one_two_three_nice_four_five")
+      end
+      it "correctly process chained function call with chained println" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("chained_fn_call_ok_2.axal"))
+
+        interpreter.output.size.should eq(1)
+        interpreter.output.first.should eq("one_twobc")
+      end
+      it "correctly raise error for chained function call with chained println in invalid position" do
+        interpreter = Interpreter.new
+
+        expect_raises(Exception, "println function must be last in the chain (currently position 2)") do
+          interpreter.interpret(ast_from_source("chained_fn_call_err_1.axal"))
+        end
+      end
+    end
+
     it "x" do
       interpreter = Interpreter.new
       interpreter.interpret(ast_from_source("x.axal"))
