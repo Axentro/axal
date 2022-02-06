@@ -194,7 +194,10 @@ module Axal
     end
 
     def parse_array
-      AST::ArrayList.new(parse_array_content.not_nil!)
+      consume_if_nxt_is(TokenKind::NEW_LINE)
+      content = parse_array_content
+      consume_if_nxt_is(TokenKind::NEW_LINE)
+      AST::ArrayList.new(content.nil? ? [] of AST::Expression : content.not_nil!)
     end
 
     def parse_array_content
@@ -205,23 +208,75 @@ module Axal
         consume
         return items
       end
-
+      
       consume
+      
       expr = parse_expr_recursively
+    
       unless expr.nil?
         items << expr.not_nil!
       end
 
+      consume_if_nxt_is(TokenKind::NEW_LINE)
+
       while nxt.kind == TokenKind::COMMA
-        consume(2)
+       
+        consume
+        consume_if_nxt_is(TokenKind::NEW_LINE)
+        consume
+ 
         expr = parse_expr_recursively
+       
         unless expr.nil?
           items << expr.not_nil!
         end
+        consume_if_nxt_is(TokenKind::NEW_LINE)
       end
 
-      return unless consume_if_nxt_is(TokenKind::RIGHT_BRACKET)
-      items.not_nil!
+      items
+    end
+
+    def parse_json
+      content = parse_json_content
+      consume_if_nxt_is(TokenKind::NEW_LINE)
+      return unless consume_if_nxt_is(TokenKind::RIGHT_CURLY)
+      AST::Json.new(content)
+    end
+
+    def parse_json_pair(pairs)
+      consume
+      key = parse_expr_recursively
+
+      if nxt.kind == TokenKind::COLON
+        consume(2)
+        val = parse_expr_recursively
+        unless key.nil? || val.nil?
+          pairs[key.not_nil!.value.as(String)] = val.not_nil!.value.as(X)
+        end
+      end
+      pairs
+    end
+
+    def parse_json_content
+      pairs = {} of String => X
+
+      # empty json
+      if nxt.kind == TokenKind::RIGHT_CURLY
+        consume
+        return pairs
+      end
+
+      consume_if_nxt_is(TokenKind::NEW_LINE)
+
+      pairs.merge!(parse_json_pair(pairs))
+
+      while nxt.kind == TokenKind::COMMA
+        consume
+        consume_if_nxt_is(TokenKind::NEW_LINE)
+        pairs.merge!(parse_json_pair(pairs))
+      end
+
+      pairs
     end
 
     def parse_module_definition
@@ -412,6 +467,8 @@ module Axal
                parse_grouped_expr
              when TokenKind::EXTERNAL_CODE
                parse_external_code
+             when TokenKind::LEFT_CURLY
+               parse_json  
              when TokenKind::NEW_LINE, TokenKind::EOF
                parse_terminator
              else

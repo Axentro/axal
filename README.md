@@ -40,7 +40,6 @@ TODO: Write development instructions here
 
 ## TODO
 
-- allow builtin functions to be passed as var to a function
 - implement Record 
 - implement encode array of record or record to Json
 - implement decode json to array of record or record

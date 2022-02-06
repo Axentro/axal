@@ -122,6 +122,7 @@ module Axal
     RETURN
     TRUE
     WHILE
+    RECORD
 
     EOF
     UNKNOWN
@@ -159,6 +160,8 @@ module Axal
         WHILE
       when "mod"
         MOD
+      when "record"
+        RECORD  
       else
         IDENTIFIER
       end

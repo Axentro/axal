@@ -135,7 +135,7 @@ describe Parser do
       end
     end
 
-    context "standalone sigle array" do
+    context "standalone single array" do
       it "generates the expected AST" do
         expected_program = axal_prog.new
 
@@ -148,7 +148,25 @@ describe Parser do
 
         expected_program.expressions << array
 
-        parser = Parser.new(tokens_from_source("standalone_array_ok.axal"))
+        parser = Parser.new(tokens_from_source("standalone_array_ok_1.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "generates the expected AST when has newlines" do
+        expected_program = axal_prog.new
+
+        array = axal_array.new(
+          [
+            axal_num.new(1).as(AST::Expression), axal_num.new(2).as(AST::Expression), axal_num.new(3).as(AST::Expression),
+            axal_array.new([axal_num.new(5), axal_num.new(6), axal_num.new(7), axal_array.new]),
+          ]
+        )
+
+        expected_program.expressions << array
+
+        parser = Parser.new(tokens_from_source("standalone_array_ok_2.axal"))
         parser.parse
 
         parser.ast.should eq(expected_program)
@@ -705,6 +723,15 @@ describe Parser do
         parser.parse
 
         parser.ast.should eq(expected_program)
+      end
+    end
+
+    context "json" do
+      it "produces the correct AST for json defintion" do
+        parser = Parser.new(tokens_from_source("json_ok_1.axal"))
+        parser.parse
+
+        pp parser.ast
       end
     end
 
