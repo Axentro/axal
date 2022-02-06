@@ -161,7 +161,7 @@ module Axal
       when "mod"
         MOD
       when "record"
-        RECORD  
+        RECORD
       else
         IDENTIFIER
       end

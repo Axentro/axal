@@ -21,6 +21,7 @@ describe Parser do
   axal_ext_code = AST::ExternalCode
   axal_array = AST::ArrayList
   axal_fn_chain = AST::FunctionChain
+  axal_json = AST::Json
 
   describe "parse" do
     context "variable binding" do
@@ -728,10 +729,40 @@ describe Parser do
 
     context "json" do
       it "produces the correct AST for json defintion" do
+        expected_program = axal_prog.new
+
+        json = axal_json.new(
+          {
+            "name"  => axal_str.new("kings").as(AST::Expression),
+            "age"   => axal_num.new(46).as(AST::Expression),
+            "weeks" => axal_json.new({
+              "week" => axal_json.new({"one" => axal_str.new("great").as(AST::Expression)}).as(AST::Expression),
+            }).as(AST::Expression),
+          }
+        )
+
+        expected_program.expressions << json
+
+        parser = Parser.new(tokens_from_source("json_ok_2.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "produces correct AST for array of json" do
+        expected_program = axal_prog.new
+
+        array = axal_array.new([
+          axal_json.new({"name" => axal_str.new("kings").as(AST::Expression)}).as(AST::Expression),
+          axal_json.new({"name" => axal_str.new("naty").as(AST::Expression)}).as(AST::Expression),
+        ])
+
+        expected_program.expressions << array
+
         parser = Parser.new(tokens_from_source("json_ok_1.axal"))
         parser.parse
 
-        pp parser.ast
+        parser.ast.should eq(expected_program)
       end
     end
 

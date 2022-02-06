@@ -1,4 +1,4 @@
-{
-  "name" : "kings",
-  "age": 46  
-}
+[
+  {"name" : "kings"},
+  {"name" : "naty"}
+]
