@@ -80,6 +80,8 @@ module Axal
         interpret_array_list(node.as(AST::ArrayList))
       when AST::FunctionChain
         interpret_function_chain(node.as(AST::FunctionChain))
+      when AST::Json
+        interpret_json(node.as(AST::Json))
       end
     end
 
@@ -117,6 +119,7 @@ module Axal
 
       given = fn_call.args.size
       expected = fn_def.params.size
+
       if given != expected
         raise Error::Runtime::WrongNumArg.new(fn_def.function_name_as_str, given, expected)
       end
@@ -139,7 +142,9 @@ module Axal
 
       current_result = nil
       fcs.in_groups_of(2).each_with_index do |grp, i|
+        raise "function call chain could not be created for call #{i}" if grp.first.nil?
         if i == 0
+          raise "function call chain could not be created for call #{i}" if grp.last.nil?
           current_result = interpret_function_call(grp.first.not_nil!)
           current_result = interpret_chained_function_call(grp.last.not_nil!, current_result.not_nil!)
         else
@@ -149,6 +154,7 @@ module Axal
           end
         end
       end
+      raise "function call chain could not be created" if current_result.nil?
       current_result.not_nil!
     end
 
@@ -347,86 +353,14 @@ module Axal
           else
             raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
           end
-        else
-          raise "The operator '#{binary_op.operator.to_s}' cannot be applied to (#{lhs.class} and #{rhs.class})"
-        end
-      end
-    end
-
-    def interpret_binary_operator2(binary_op)
-      lhs = interpret_node(binary_op.left.not_nil!)
-
-      if binary_op.operator == TokenKind::OR
-        if lhs.is_a?(Bool)
-          lhs || interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(String)
-          lhs || interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(Float64)
-          lhs || interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(Nil)
-          lhs || interpret_node(binary_op.right.not_nil!)
-        end
-      elsif binary_op.operator == TokenKind::AND
-        if lhs.is_a?(Bool)
-          lhs && interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(String)
-          lhs && interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(Float64)
-          lhs && interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(Nil)
-          lhs && interpret_node(binary_op.right.not_nil!)
-        end
-      elsif binary_op.operator == TokenKind::DOUBLE_EQUALS
-        if lhs.is_a?(Bool)
-          lhs == interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(String)
-          lhs == interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(Float64)
-          lhs == interpret_node(binary_op.right.not_nil!)
-        elsif lhs.is_a?(Nil)
-          lhs == interpret_node(binary_op.right.not_nil!)
-        end
-      else
-        rhs = interpret_node(binary_op.right.not_nil!)
-        if lhs.is_a?(Float64) && rhs.is_a?(Float64)
+        elsif lhs.is_a?(Array(X)) && rhs.is_a?(Array(X))
           case binary_op.operator
           when TokenKind::PLUS
             lhs + rhs
           when TokenKind::HYPHEN
-            lhs - rhs
-          when TokenKind::ASTERISK
-            lhs * rhs
-          when TokenKind::FORWARD_SLASH
-            lhs / rhs
-          when TokenKind::NOT_EQUAL
-            lhs != rhs
-          when TokenKind::GREATER_THAN
-            lhs > rhs
-          when TokenKind::LESS_THAN
-            lhs < rhs
-          when TokenKind::GREATER_THAN_OR_EQUAL
-            lhs >= rhs
-          when TokenKind::LESS_THAN_OR_EQUAL
-            lhs <= rhs
+            lhs - rhs  
           else
-            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 numbers (not #{lhs.class} and #{rhs.class})"
-          end
-        elsif lhs.is_a?(String) && rhs.is_a?(String)
-          case binary_op.operator
-          when TokenKind::PLUS
-            lhs + rhs
-          when TokenKind::NOT_EQUAL
-            lhs != rhs
-          when TokenKind::GREATER_THAN
-            lhs > rhs
-          when TokenKind::LESS_THAN
-            lhs < rhs
-          when TokenKind::GREATER_THAN_OR_EQUAL
-            lhs >= rhs
-          when TokenKind::LESS_THAN_OR_EQUAL
-            lhs <= rhs
-          else
-            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
+            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 arrays (not #{lhs.class} and #{rhs.class})"
           end
         else
           raise "The operator '#{binary_op.operator.to_s}' cannot be applied to (#{lhs.class} and #{rhs.class})"
@@ -461,10 +395,29 @@ module Axal
         case item
         when AST::ArrayList
           interpret_array_list(item).as(X)
+        when AST::Json
+          interpret_nested_json(item).as(X)
         else
           interpret_node(item).as(X)
         end
       end
+    end
+
+    def interpret_json(json : AST::Json)
+      interpret_nested_json(json).to_json
+    end
+
+    def interpret_nested_json(json : AST::Json)
+      n = {} of String => X
+      json.items.each do |k, v|
+        case v
+        when AST::Json
+          n[k] = interpret_nested_json(v).as(X)
+        else
+          n[k] = interpret_node(v).as(X)
+        end
+      end
+      n
     end
 
     # find variables in the external code and fetch from local or global
@@ -510,7 +463,7 @@ module Axal
 
     def println(fn_call)
       return false if fn_call.function_name_as_str != "println"
-
+      raise "No function call arguments were supplied" if fn_call.args.empty?
       result = interpret_node(fn_call.args.first).to_s
       output << result
       puts result

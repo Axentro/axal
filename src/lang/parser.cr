@@ -232,6 +232,7 @@ module Axal
         consume_if_nxt_is(TokenKind::NEW_LINE)
       end
 
+      consume_if_nxt_is(TokenKind::RIGHT_BRACKET)
       items
     end
 
@@ -254,7 +255,8 @@ module Axal
       pairs.merge!(parse_json_pair)
 
       while nxt.kind == TokenKind::COMMA
-        consume(2)
+        consume
+        consume_if_nxt_is(TokenKind::NEW_LINE)
         pairs.merge!(parse_json_pair)
       end
 
@@ -269,6 +271,7 @@ module Axal
       consume
 
       if maybe_key = parse_expr_recursively
+        raise "Json structure must have a String as a key not: #{maybe_key.class}" if maybe_key.class != AST::Str
         key = maybe_key.not_nil!.value.as(String)
         pair[key] = AST::Nil.new
       end
@@ -499,7 +502,7 @@ module Axal
                elsif nxt.kind == TokenKind::LEFT_PAREN
                  consume
                  fn_call = parse_function_call(expr)
-                 @function_calls << fn_call.not_nil!
+                 @function_calls << fn_call unless fn_call.nil?
 
                  if nxt.kind == TokenKind::TRIANGLE || lookahead(2).kind == TokenKind::TRIANGLE
                    if @chain.nil?

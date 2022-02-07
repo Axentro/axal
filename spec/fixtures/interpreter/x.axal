@@ -1,12 +1,9 @@
-fn one : f, i
- f(i)
+
+fn hello
+ "hello, world!"
 end
 
-fn print : i
- println(i)
-end
-
-one(print, "hello")
+hello() |> boo() |> println()
 
 
 

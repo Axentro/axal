@@ -1,0 +1,33 @@
+mod Object
+  fn new : o
+    `JSON.stringify(:o:)`
+  end
+
+  fn get : o, item
+    `JSON.parse(JSON.stringify(:o:)).:item:`
+  end
+
+  fn put : o, item, v
+    `var x = JSON.parse(JSON.stringify(:o:));
+     x.:item: = ':v:';
+     if (typeof(:v:) !== 'undefined'){
+     x.:item: = :v:;
+     } 
+     JSON.stringify(x);
+    `
+  end
+
+  fn merge : a, b
+    `
+    if (typeof(:a:) !== 'object' && typeof(:b:) !== 'object') {
+      throw "both arguments must be objects"
+    } else {
+      JSON.stringify(Object.assign(:a:,:b:))
+    }
+   `
+  end 
+
+  fn keys : i
+    `Object.keys(:i:)`
+  end
+end

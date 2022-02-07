@@ -699,6 +699,27 @@ describe Parser do
 
         parser.ast.should eq(expected_program)
       end
+
+      it "generates the expected AST when argument is array" do
+        expected_program = axal_prog.new
+
+        fn_call = axal_fn_call.new(axal_ident.new("go"), [
+          axal_array.new([
+            axal_num.new(1.0).as(AST::Expression), 
+            axal_num.new(2.0).as(AST::Expression), 
+            axal_num.new(3.0).as(AST::Expression)
+          ]).as(AST::Expression)
+         ])
+        expected_program.expressions << fn_call
+
+        parser = Parser.new(tokens_from_source("fn_call_ok_4.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "generates the expected AST when argument is json" do
+      end
     end
 
     context "external code" do
@@ -729,6 +750,24 @@ describe Parser do
 
     context "json" do
       it "produces the correct AST for json defintion" do
+        expected_program = axal_prog.new
+
+        json = axal_json.new(
+          {
+            "name"  => axal_str.new("kings").as(AST::Expression),
+            "age"   => axal_num.new(46).as(AST::Expression)
+          }
+        )
+
+        expected_program.expressions << json
+
+        parser = Parser.new(tokens_from_source("json_ok_3.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "produces the correct AST for json defintion with new lines" do
         expected_program = axal_prog.new
 
         json = axal_json.new(
