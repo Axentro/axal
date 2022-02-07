@@ -3,7 +3,7 @@ module Axal
     WHITESPACE          = [" ", "\r", "\t"]
     ONE_CHAR_LEX        = ["(", ")", ":", ",", ".", "-", "+", "/", "*", "[", "]", "{", "}"]
     ONE_OR_TWO_CHAR_LEX = ["!", "=", ">", "<"]
-    KEYWORD             = ["and", "else", "end", "false", "fn", "if", "nil", "or", "return", "true", "while", "mod"]
+    KEYWORD             = ["and", "else", "end", "false", "fn", "if", "nil", "or", "return", "true", "while", "mod", "fget"]
 
     getter source : String
     getter tokens : Array(Token) = [] of Token

@@ -448,6 +448,26 @@ describe Interpreter do
           interpreter.interpret(ast_from_source("chained_fn_call_err_1.axal"))
         end
       end
+      it "correctly subsequent chained function calls" do
+        interpreter = Interpreter.new
+
+        interpreter.interpret(ast_from_source("chained_fn_call_ok_3.axal"))
+
+        interpreter.output.size.should eq(2)
+        interpreter.output.first.should eq("hello")
+        interpreter.output.last.should eq("hello, world!")
+      end
+    end
+
+    context "fetch" do
+      it "correctly process fget" do
+        interpreter = Interpreter.new
+        interpreter.interpret(ast_from_source("fget_ok_1.axal"))
+
+        expected = %Q{{"status":"success","result":{"send":"0.0001","hra_buy":"0.001","hra_sell":"0.0001","hra_cancel":"0.0001","create_token":"10","update_token":"0.0001","lock_token":"0.0001","burn_token":"0.0001"}}}
+
+        interpreter.output.first.should eq(expected)
+      end
     end
 
     it "x" do

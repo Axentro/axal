@@ -22,6 +22,7 @@ describe Parser do
   axal_array = AST::ArrayList
   axal_fn_chain = AST::FunctionChain
   axal_json = AST::Json
+  axal_fget = AST::Fetch
 
   describe "parse" do
     context "variable binding" do
@@ -659,6 +660,27 @@ describe Parser do
 
         parser.ast.should eq(expected_program)
       end
+      it "generates the expected AST when subsequent function calls" do
+        expected_program = axal_prog.new
+
+        fc1 = axal_fn_chain.new([
+          axal_fn_call.new(axal_ident.new("one")),
+          axal_fn_call.new(axal_ident.new("two")),
+        ])
+
+        fc2 = axal_fn_chain.new([
+          axal_fn_call.new(axal_ident.new("three")),
+          axal_fn_call.new(axal_ident.new("four")),
+        ])
+
+        expected_program.expressions << fc1
+        expected_program.expressions << fc2
+
+        parser = Parser.new(tokens_from_source("chained_fn_call_ok_2.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
     end
 
     context "function call" do
@@ -705,11 +727,11 @@ describe Parser do
 
         fn_call = axal_fn_call.new(axal_ident.new("go"), [
           axal_array.new([
-            axal_num.new(1.0).as(AST::Expression), 
-            axal_num.new(2.0).as(AST::Expression), 
-            axal_num.new(3.0).as(AST::Expression)
-          ]).as(AST::Expression)
-         ])
+            axal_num.new(1.0).as(AST::Expression),
+            axal_num.new(2.0).as(AST::Expression),
+            axal_num.new(3.0).as(AST::Expression),
+          ]).as(AST::Expression),
+        ])
         expected_program.expressions << fn_call
 
         parser = Parser.new(tokens_from_source("fn_call_ok_4.axal"))
@@ -719,6 +741,20 @@ describe Parser do
       end
 
       it "generates the expected AST when argument is json" do
+      end
+    end
+
+    context "http" do
+      it "produces the expected AST for fget" do
+        expected_program = axal_prog.new
+
+        fget = axal_fget.new("http://www.axentro.io")
+        expected_program.expressions << fget
+
+        parser = Parser.new(tokens_from_source("fget_ok_1.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
       end
     end
 
@@ -754,8 +790,8 @@ describe Parser do
 
         json = axal_json.new(
           {
-            "name"  => axal_str.new("kings").as(AST::Expression),
-            "age"   => axal_num.new(46).as(AST::Expression)
+            "name" => axal_str.new("kings").as(AST::Expression),
+            "age"  => axal_num.new(46).as(AST::Expression),
           }
         )
 

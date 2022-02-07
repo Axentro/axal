@@ -82,7 +82,13 @@ module Axal
         interpret_function_chain(node.as(AST::FunctionChain))
       when AST::Json
         interpret_json(node.as(AST::Json))
+      when AST::Fetch
+        interpret_fetch(node.as(AST::Fetch))
       end
+    end
+
+    def interpret_fetch(url)
+      Fetch.get(url.value.as(String))
     end
 
     def fetch_function_definition(fn_name : String)
@@ -358,7 +364,7 @@ module Axal
           when TokenKind::PLUS
             lhs + rhs
           when TokenKind::HYPHEN
-            lhs - rhs  
+            lhs - rhs
           else
             raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 arrays (not #{lhs.class} and #{rhs.class})"
           end

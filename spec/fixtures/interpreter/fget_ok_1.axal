@@ -1,0 +1,3 @@
+a = fget "https://mainnet.axentro.io/api/v1/transaction/fees"
+
+println(a)

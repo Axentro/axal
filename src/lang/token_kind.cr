@@ -122,7 +122,7 @@ module Axal
     RETURN
     TRUE
     WHILE
-    RECORD
+    FGET
 
     EOF
     UNKNOWN
@@ -160,8 +160,8 @@ module Axal
         WHILE
       when "mod"
         MOD
-      when "record"
-        RECORD
+      when "fget"
+        FGET
       else
         IDENTIFIER
       end

@@ -154,6 +154,23 @@ describe Lexer do
       end
     end
 
+    context "http" do
+      it "produces the correct tokens" do
+        source = <<-SOURCE
+        fget "http://www.google.com"
+        SOURCE
+
+        lexer = Lexer.new(source)
+
+        expected_token_types = [
+          TokenKind::FGET, TokenKind::STRING, TokenKind::EOF,
+        ]
+        lexer.start_tokenization
+
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+      end
+    end
+
     context "modules" do
       it "produces the correct tokens" do
         source = <<-SOURCE

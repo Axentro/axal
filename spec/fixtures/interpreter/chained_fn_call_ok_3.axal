@@ -7,18 +7,6 @@ fn getfees
  "hello"
 end
 
-
 getfees() |> println()
 
 hello("Kingsley") |> println()
-
-
-
-
-
-
-
-
-
-
-

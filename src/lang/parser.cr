@@ -394,6 +394,12 @@ module Axal
       repetition
     end
 
+    def parse_fget
+      consume_if_nxt_is(TokenKind::NEW_LINE)
+      return unless consume_if_nxt_is(TokenKind::STRING)
+      AST::Fetch.new(current.literal)
+    end
+
     def parse_block
       consume
       block = AST::Block.new
@@ -480,6 +486,8 @@ module Axal
                parse_external_code
              when TokenKind::LEFT_CURLY
                parse_json
+             when TokenKind::FGET
+               parse_fget
              when TokenKind::NEW_LINE, TokenKind::EOF
                parse_terminator
              else
@@ -513,11 +521,13 @@ module Axal
                      if @chain
                        @chain.not_nil!.function_calls = @function_calls.dup
                        @function_calls.clear
+                       @chain = nil
                      end
 
                      nil
                    else
                      @function_calls.clear
+                     @chain = nil
                      fn_call
                    end
                  end

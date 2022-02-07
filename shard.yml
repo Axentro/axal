@@ -10,5 +10,11 @@ dependencies:
   duktape:
     github: jessedoyle/duktape.cr
     version: ~> 1.0.0
+  crest:
+    github: mamantoha/crest  
     
+development_dependencies:
+  ameba:
+    github: veelenga/ameba
+        
 license: MIT
