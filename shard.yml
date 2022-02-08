@@ -12,6 +12,8 @@ dependencies:
     version: ~> 1.0.0
   crest:
     github: mamantoha/crest  
+  comandante:
+    github: tghaleb/comandante    
     
 development_dependencies:
   ameba:

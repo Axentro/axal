@@ -459,6 +459,7 @@ module Axal
       op
     end
 
+    # ameba:disable Metrics/CyclomaticComplexity
     def parse_expr_recursively(precedence = LOWEST_PRECEDENCE)
       expr = case current.kind
              when TokenKind::RETURN

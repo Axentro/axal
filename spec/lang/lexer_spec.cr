@@ -5,7 +5,7 @@ describe Lexer do
     context "only one character lexemes" do
       it "produces the expected tokens" do
         source = <<-SOURCE
-          ( ) . - + / * 
+          ( ) . - + / *
           ! = > < [ ]
           \t
 

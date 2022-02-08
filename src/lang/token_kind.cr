@@ -134,6 +134,7 @@ module Axal
       UNKNOWN
     end
 
+    # ameba:disable Metrics/CyclomaticComplexity
     def self.from_identifier(value) : TokenKind
       case value
       when "and"

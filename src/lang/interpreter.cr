@@ -43,8 +43,8 @@ module Axal
       last_value
     end
 
+    # ameba:disable Metrics/CyclomaticComplexity
     def interpret_node(node)
-      # pp node
       case node
       when AST::ModuleDefinition
         interpret_module_definition(node.as(AST::ModuleDefinition))
@@ -308,6 +308,7 @@ module Axal
       end
     end
 
+    # ameba:disable Metrics/CyclomaticComplexity
     def interpret_binary_operator(binary_op)
       lhs = interpret_node(binary_op.left.not_nil!)
 
@@ -340,7 +341,7 @@ module Axal
           when TokenKind::LESS_THAN_OR_EQUAL
             lhs <= rhs
           else
-            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 numbers (not #{lhs.class} and #{rhs.class})"
+            raise "The operator '#{binary_op.operator}' can only be applied to 2 numbers (not #{lhs.class} and #{rhs.class})"
           end
         elsif lhs.is_a?(String) && rhs.is_a?(String)
           case binary_op.operator
@@ -357,7 +358,7 @@ module Axal
           when TokenKind::LESS_THAN_OR_EQUAL
             lhs <= rhs
           else
-            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
+            raise "The operator '#{binary_op.operator}' can only be applied to 2 strings (not #{lhs.class} and #{rhs.class})"
           end
         elsif lhs.is_a?(Array(X)) && rhs.is_a?(Array(X))
           case binary_op.operator
@@ -366,10 +367,10 @@ module Axal
           when TokenKind::HYPHEN
             lhs - rhs
           else
-            raise "The operator '#{binary_op.operator.to_s}' can only be applied to 2 arrays (not #{lhs.class} and #{rhs.class})"
+            raise "The operator '#{binary_op.operator}' can only be applied to 2 arrays (not #{lhs.class} and #{rhs.class})"
           end
         else
-          raise "The operator '#{binary_op.operator.to_s}' cannot be applied to (#{lhs.class} and #{rhs.class})"
+          raise "The operator '#{binary_op.operator}' cannot be applied to (#{lhs.class} and #{rhs.class})"
         end
       end
     end

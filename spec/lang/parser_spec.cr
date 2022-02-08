@@ -2,7 +2,6 @@ require "../spec_helper"
 
 describe Parser do
   axal_prog = AST::Program
-  axal_expr = AST::Expression
   axal_var_binding = AST::VarBinding
   axal_ident = AST::Identifier
   axal_str = AST::Str

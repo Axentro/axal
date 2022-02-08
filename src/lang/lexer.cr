@@ -22,9 +22,9 @@ module Axal
       @tokens << Token.new(TokenKind::EOF, "", nil, after_source_end_location)
     end
 
+    # ameba:disable Metrics/CyclomaticComplexity
     def tokenize
       @lexeme_start_p = @next_p
-      token = nil
 
       c = consume
 
