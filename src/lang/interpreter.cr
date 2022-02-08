@@ -88,7 +88,7 @@ module Axal
     end
 
     def interpret_fetch(url)
-      Fetch.get(url.value.as(String))
+      Fetch.get(interpret_node(url.value).as(String))
     end
 
     def fetch_function_definition(fn_name : String)

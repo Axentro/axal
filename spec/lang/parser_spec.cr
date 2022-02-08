@@ -748,7 +748,7 @@ describe Parser do
       it "produces the expected AST for fget" do
         expected_program = axal_prog.new
 
-        fget = axal_fget.new("http://www.axentro.io")
+        fget = axal_fget.new(axal_str.new("http://www.axentro.io"))
         expected_program.expressions << fget
 
         parser = Parser.new(tokens_from_source("fget_ok_1.axal"))

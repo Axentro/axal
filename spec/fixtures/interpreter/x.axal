@@ -1,24 +1,5 @@
-
-fn hello : name
+fn hello_world
  "hello, world!"
 end
 
-fn getfees
- "hello"
-end
-
-
-getfees() |> println()
-
-hello("Kingsley") |> println()
-
-
-
-
-
-
-
-
-
-
-
+hello_world() |> println()

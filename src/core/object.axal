@@ -4,7 +4,7 @@ mod Object
   end
 
   fn get : o, item
-    `JSON.parse(JSON.stringify(:o:)).:item:`
+    `JSON.stringify(JSON.parse(JSON.stringify(:o:)).:item:)`
   end
 
   fn put : o, item, v

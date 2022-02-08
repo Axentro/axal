@@ -396,8 +396,11 @@ module Axal
 
     def parse_fget
       consume_if_nxt_is(TokenKind::NEW_LINE)
-      return unless consume_if_nxt_is(TokenKind::STRING)
-      AST::Fetch.new(current.literal)
+      consume
+      expr = parse_expr_recursively
+      return if expr.nil?
+      # return unless consume_if_nxt_is(TokenKind::STRING)
+      AST::Fetch.new(expr)
     end
 
     def parse_block
