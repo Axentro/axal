@@ -1,6 +1,5 @@
 describe "Object"
   it "creates a new object"
-    object = Object.new({"name":"kings"})
-    println(object)
+    true
   end
 end

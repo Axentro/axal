@@ -6,6 +6,10 @@ authors:
 
 crystal: 1.2.2
 
+targets:
+  axal:
+    main: src/cli/cli.cr
+
 dependencies:
   duktape:
     github: jessedoyle/duktape.cr

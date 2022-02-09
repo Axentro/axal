@@ -1,0 +1,23 @@
+describe "Array"
+  it "gets size of array 1"
+    true
+  end
+   it "gets size of array 2"
+    true
+  end
+   it "gets size of array 3"
+    true
+  end
+   it "gets size of array 4"
+    true
+  end
+   it "gets size of array 5"
+    true
+  end
+   it "gets size of array 6"
+    true
+  end
+   it "gets size of array 7"
+    true
+  end
+end
