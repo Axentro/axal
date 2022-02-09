@@ -41,6 +41,3 @@ TODO: Write development instructions here
 ## TODO
 
 - implement require file (include all core files automatically)
-- implement spec support - describe, it, assert_true
-- implement spec cli runner - excute specified spec or all specs in a directory structure
-- implement cli to execute axal code file

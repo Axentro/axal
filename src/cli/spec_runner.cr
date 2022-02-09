@@ -51,7 +51,8 @@ class SpecRunner
   end
 
   private def execute_tests(file)
-    source = File.read(file)
+    core = prepend_core
+    source = core += File.read(file)
     lexer = Axal::Lexer.new(source)
     parser = Axal::Parser.new(lexer.start_tokenization)
     parser.parse
@@ -59,5 +60,16 @@ class SpecRunner
     interpreter = Axal::Interpreter.new
     interpreter.interpret(parser.ast)
     interpreter.test_output
+  end
+
+  private def prepend_core
+    content = ""
+    Dir.glob("src/core/src/*").each do |file|
+      source = File.read(file)
+      content += "\n"
+      content += source
+      content += "\n"
+    end
+    content
   end
 end
