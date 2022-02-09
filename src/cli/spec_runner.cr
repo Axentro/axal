@@ -64,12 +64,11 @@ class SpecRunner
 
   private def prepend_core
     content = ""
-    Dir.glob("src/core/src/*").each do |file|
-      source = File.read(file)
+    ["array", "object"].each do |file|
       content += "\n"
-      content += source
+      content += FileStorage.get("src/#{file}.axal").gets_to_end
       content += "\n"
-    end
+    end    
     content
   end
 end

@@ -19,7 +19,10 @@ dependencies:
   commander:
     github: mrrooijen/commander
     version: ~> 0.4.0    
-    
+  baked_file_system:
+    github: schovi/baked_file_system
+    version: 0.10.0   
+
 development_dependencies:
   ameba:
     github: veelenga/ameba
