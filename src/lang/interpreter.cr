@@ -1,12 +1,22 @@
 module Axal
+  struct TestResult
+    property desc_name : String
+    property test_name : String
+    property result : Bool
+
+    def initialize(@desc_name, @test_name, @result); end
+  end
+
   class Interpreter
     getter program : AST::Program? = nil
-    getter output : Array(String)
+    property output : Array(String)
     getter env : Hash(String, (AST::Expression | X))
     property unwind_call_stack : Int32
+    property test_output : Hash(String, Array(TestResult))
 
     def initialize
       @output = [] of String
+      @test_output = {} of String => Array(TestResult)
       @env = {} of String => AST::Expression | X
       @call_stack = [] of Runtime::StackFrame
       @unwind_call_stack = -1
@@ -84,6 +94,10 @@ module Axal
         interpret_json(node.as(AST::Json))
       when AST::Fetch
         interpret_fetch(node.as(AST::Fetch))
+      when AST::DescribeDefinition
+        interpret_describe_definition(node.as(AST::DescribeDefinition))
+      when AST::ItDefinition
+        interpret_it_definition(node.as(AST::ItDefinition))
       end
     end
 
@@ -267,6 +281,33 @@ module Axal
       @env[mod_def.module_name_as_str] = mod_def
       # process all the expressions inside the module body
       interpret_nodes(mod_def.body.not_nil!.expressions) if !mod_def.body.nil?
+    end
+
+    def interpret_describe_definition(desc_def)
+      if body = desc_def.body
+        body.expressions.each do |expr|
+          case expr
+          when AST::ItDefinition
+            r = interpret_it_definition(expr.as(AST::ItDefinition))
+            result = (r.nil? || r.not_nil!.class != Bool) ? false : r.not_nil!.as(Bool)
+            desc_name = desc_def.name.value.as(String)
+            test_name = expr.as(AST::ItDefinition).name.value.as(String)
+            @test_output[desc_name] ||= [] of TestResult
+            if (@test_output[desc_name].count { |t| t.test_name == test_name } > 0)
+              raise "Duplicate test name: #{test_name} for: #{desc_name}"
+            end
+            @test_output[desc_name] << TestResult.new(desc_name, test_name, result)
+          else
+            # process all the expressions inside the describe body
+            interpret_nodes(desc_def.body.not_nil!.expressions) if !desc_def.body.nil?
+          end
+        end
+      end
+    end
+
+    def interpret_it_definition(it_def)
+      # process all the expressions inside the it body
+      interpret_nodes(it_def.body.not_nil!.expressions) if !it_def.body.nil?
     end
 
     def interpret_function_call(fn_call : AST::FunctionCall)

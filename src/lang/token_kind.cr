@@ -123,6 +123,8 @@ module Axal
     TRUE
     WHILE
     FGET
+    DESCRIBE
+    IT
 
     EOF
     UNKNOWN
@@ -163,6 +165,10 @@ module Axal
         MOD
       when "fget"
         FGET
+      when "describe"
+        DESCRIBE
+      when "it"
+        IT
       else
         IDENTIFIER
       end

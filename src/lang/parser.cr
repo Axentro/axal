@@ -314,6 +314,34 @@ module Axal
       mod
     end
 
+    def parse_describe
+      return unless consume_if_nxt_is(TokenKind::STRING)
+      desc = AST::DescribeDefinition.new(AST::Str.new(current.literal))
+      if nxt.kind != TokenKind::NEW_LINE
+        unexpected_token_error
+        return
+      end
+
+      return unless consume_if_nxt_is(TokenKind::NEW_LINE)
+      desc.body = parse_block
+
+      desc
+    end
+
+    def parse_it
+      return unless consume_if_nxt_is(TokenKind::STRING)
+      desc = AST::ItDefinition.new(AST::Str.new(current.literal))
+      if nxt.kind != TokenKind::NEW_LINE
+        unexpected_token_error
+        return
+      end
+
+      return unless consume_if_nxt_is(TokenKind::NEW_LINE)
+      desc.body = parse_block
+
+      desc
+    end
+
     def parse_function_params
       consume
       return unless consume_if_nxt_is(TokenKind::IDENTIFIER)
@@ -492,6 +520,10 @@ module Axal
                parse_json
              when TokenKind::FGET
                parse_fget
+             when TokenKind::DESCRIBE
+               parse_describe
+             when TokenKind::IT
+               parse_it
              when TokenKind::NEW_LINE, TokenKind::EOF
                parse_terminator
              else

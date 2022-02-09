@@ -194,6 +194,30 @@ describe Lexer do
       end
     end
 
+    context "testing" do
+      it "produces the correct tokens" do
+        source = <<-SOURCE
+        describe "Object"
+          it "should do stuff"
+            1 == 1
+          end
+        end
+        SOURCE
+
+        lexer = Lexer.new(source)
+
+        expected_token_types = [
+          TokenKind::DESCRIBE, TokenKind::STRING, TokenKind::NEW_LINE,
+          TokenKind::IT, TokenKind::STRING,
+          TokenKind::NEW_LINE, TokenKind::NUMBER, TokenKind::DOUBLE_EQUALS, TokenKind::NUMBER,
+          TokenKind::NEW_LINE, TokenKind::END, TokenKind::NEW_LINE, TokenKind::END, TokenKind::EOF,
+        ]
+        lexer.start_tokenization
+
+        lexer.tokens.map(&.kind).should eq(expected_token_types)
+      end
+    end
+
     context "when the source is a program with valid lexemes only" do
       it "produces the appropriate tokens" do
         source = <<-SOURCE

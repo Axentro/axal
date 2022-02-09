@@ -1,0 +1,5 @@
+ describe "Object"
+   it "should do stuff"
+     1 == 1
+  end
+end

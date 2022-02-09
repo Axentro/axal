@@ -570,6 +570,16 @@ describe Parser do
       end
     end
 
+    context "testing" do
+      it "generates the expected AST for testing definitions" do
+        parser = Parser.new(tokens_from_source("testing_ok_1.axal"))
+
+        parser.parse
+
+        pp parser.ast
+      end
+    end
+
     context "qualified function call" do
       it "generates the expected AST for a qualified function call" do
         expected_program = axal_prog.new
