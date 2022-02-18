@@ -22,6 +22,8 @@ describe Parser do
   axal_fn_chain = AST::FunctionChain
   axal_json = AST::Json
   axal_fget = AST::Fetch
+  axal_desc = AST::DescribeDefinition
+  axal_it = AST::ItDefinition
 
   describe "parse" do
     context "variable binding" do
@@ -572,11 +574,25 @@ describe Parser do
 
     context "testing" do
       it "generates the expected AST for testing definitions" do
-        parser = Parser.new(tokens_from_source("testing_ok_1.axal"))
+        expected_program = axal_prog.new
 
+        desc = axal_desc.new(axal_str.new("Object"))
+        desc_block = axal_block.new
+        test = axal_it.new(axal_str.new("should do stuff"))
+        test_block = axal_block.new  
+        assertion = axal_binary_op.new(TokenKind::DOUBLE_EQUALS, axal_num.new(1), axal_num.new(1))
+
+        test_block << assertion
+        test.body = test_block
+        desc_block << test 
+        desc.body = desc_block
+
+        expected_program.expressions << desc
+
+        parser = Parser.new(tokens_from_source("testing_ok_1.axal"))
         parser.parse
 
-        pp parser.ast
+        parser.ast.should eq(expected_program)
       end
     end
 
