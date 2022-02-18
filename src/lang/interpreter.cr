@@ -357,8 +357,8 @@ module Axal
         lhs || interpret_node(binary_op.right.not_nil!).as(X)
       elsif binary_op.operator == TokenKind::AND
         lhs && interpret_node(binary_op.right.not_nil!).as(X)
-      elsif binary_op.operator == TokenKind::DOUBLE_EQUALS
-        lhs == interpret_node(binary_op.right.not_nil!).as(X)
+      elsif binary_op.operator == TokenKind::DOUBLE_EQUALS 
+        lhs == interpret_node(binary_op.right.not_nil!).as(X) 
       else
         rhs = interpret_node(binary_op.right.not_nil!)
         if lhs.is_a?(Float64) && rhs.is_a?(Float64)
@@ -444,7 +444,7 @@ module Axal
         when AST::ArrayList
           interpret_array_list(item).as(X)
         when AST::Json
-          interpret_nested_json(item).as(X)
+          interpret_json(item).as(X)
         else
           interpret_node(item).as(X)
         end
@@ -452,7 +452,7 @@ module Axal
     end
 
     def interpret_json(json : AST::Json)
-      interpret_nested_json(json).to_json
+      interpret_nested_json(json).as(X)
     end
 
     def interpret_nested_json(json : AST::Json)
@@ -468,27 +468,75 @@ module Axal
       n
     end
 
-    # find variables in the external code and fetch from local or global
-    def interpret_external_code(external_code)
-      rt = Duktape::Runtime.new(500)
-      v = replace_external_code_variables(external_code.value.as(String))
-      rt.eval(v)
-    rescue e : Exception
-      raise "external code error: #{e.message}"
+    def interpret_duktape(value : Duktape::JSPrimitive)
+      case value
+      when Array(Duktape::JSPrimitive)
+        interpret_duktape_array(value.as(Array(Duktape::JSPrimitive))).as(X)
+      when Hash(String, Duktape::JSPrimitive)
+        interpret_duktape_hash(value.as(Hash(String, Duktape::JSPrimitive))).as(X)
+      when Float64
+        value.as(X)
+      else
+        lexer = Axal::Lexer.new(value.as(String))
+        parser = Parser.new(lexer.start_tokenization)
+        parser.parse
+        interpret_node(parser.ast.expressions.first).as(X)
+      end
+    rescue 
+      value.as(X)  
     end
 
-    def replace_external_code_variables(external_code)
-      vars = external_code.scan(/\:(.+?)\:/)
+    def interpret_duktape_hash(value : Hash(String, Duktape::JSPrimitive)) : X
+      n = {} of String => X
+      value.each do |k, v|
+        n[k] = interpret_duktape(v)
+      end
+      n.as(X)
+    end
+
+    def interpret_duktape_array(value : Array(Duktape::JSPrimitive)) : X
+      arry = [] of X
+      value.each do |v|
+        arry << interpret_duktape(v)
+      end
+      arry.as(X)
+    end
+
+    # find variables in the external code and fetch from local or global
+    def interpret_external_code(external_code) : X
+      rt = Duktape::Runtime.new(500)
+      v = replace_external_code_variables(external_code.value.as(String), rt)
+      r = rt.eval(v)
+      interpret_duktape(r)
+    rescue e : Exception
+      raise "external code error: #{e.message} \n\n #{v} \n\n #{r}"
+    end
+
+    def replace_external_code_variables(external_code, rt)
+      vars = external_code.scan(/\:([a-zA-Z0-9_.-]*?)\:/)
       vars.each do |v|
         param = v[1]
         r = fetch_ext_code_replacement_value(param)
-        external_code = external_code.gsub(":#{param}:", r)
+        v = convert_x_to_js(r.as(X), rt)
+        external_code = external_code.gsub(":#{param}:", v)
       end
       external_code
     end
 
+    def convert_x_to_js(item : X, rt) : X
+      case item 
+      when Hash(String, X)
+        item.to_json
+      when Array(X)
+        item.map do |v|
+          convert_x_to_js(v, rt)
+        end
+      else
+        item
+      end
+    end
+
     def fetch_ext_code_replacement_value(param)
-      # variables.map
       # First process local variables and if not found locally find globals
       if @call_stack.size > 0 && @call_stack.last.env.has_key?(param)
         # Local variable.

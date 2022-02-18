@@ -1,19 +1,19 @@
 mod Object
   fn new : o
-    `JSON.stringify(:o:)`
+    o
   end
 
   fn get : o, item
-    `JSON.stringify(JSON.parse(JSON.stringify(:o:)).:item:)`
+    `var a = :o:.:item:; a`
   end
 
   fn put : o, item, v
-    `var x = JSON.parse(JSON.stringify(:o:));
+    `var x = :o:;
      x.:item: = ':v:';
      if (typeof(:v:) !== 'undefined'){
-     x.:item: = :v:;
+       x.:item: = :v:;
      } 
-     JSON.stringify(x);
+     x;
     `
   end
 

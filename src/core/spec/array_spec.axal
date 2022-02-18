@@ -1,23 +1,76 @@
-describe "Array"
+describe "Array.size"
   it "gets size of array 1"
-    Array.size([1,2,3]) == 4
+    Array.size([1,2,3]) == 3
   end
-   it "gets size of array 2"
-    true
+end
+
+describe "Array: append"
+  it "appends a string"
+    Array.append([1,2,3], "a") == [1,2,3,"a"]
   end
-   it "gets size of array 3"
-    true
+
+  it "appends a number"
+    Array.append([1,2,3], 4) == [1,2,3,4]
   end
-   it "gets size of array 4"
-    true
+
+  it "appends an array"
+    Array.append([1,2,3], [4,5,6]) == [1,2,3,[4,5,6]]
   end
-   it "gets size of array 5"
-    true
+
+  it "appends an object"
+    Array.append([1,2,3], {"a":1}) == [1,2,3,{"a":1}]
   end
-   it "gets size of array 6"
-    true
+    
+  it "appends an array with object"
+    Array.append([1,2,3], [1,{"a":1}]) == [1,2,3,[1,{"a":1}]]
   end
-   it "gets size of array 7"
-    true
+
+  it "appends object with array"
+   Array.append([1,2,3], {"a":[1,2,{"b":1}]}) == [1,2,3,{"a":[1,2,{"b":1}]}]
+  end
+end
+
+describe "Array.each"
+  it "iterates an array"
+    new_array = []
+    fn func : i
+      new_array = Array.append(new_array, i + 1)
+    end
+    Array.each([1,2,3], func)
+    new_array == [2,3,4]
+  end
+ end
+
+describe "Array.map"
+  it "maps an array"
+    fn func : i
+      i + 1
+    end
+    Array.map([1,2,3], func) == [2,3,4]
+  end
+end
+
+describe "Array.at"
+  it "fetches number at index"
+    Array.at([1,2,3], 0) == 1
+  end
+
+  it "fetches string at index"
+    Array.at(["a","b","c"], 2) == "c"
+  end
+
+  it "fetches array at index"
+    Array.at([[1],[2],[3]], 0) == [1]
+  end
+
+    it "fetches object at index"
+    Array.at([{"a":1},{"b":2}], 1) == {"b":2}
+  end
+end
+
+describe "Array chaining"
+  it "chains array commands"
+    v = Array.new([1,2,3]) |> Array.at(0)
+    v == 1
   end
 end

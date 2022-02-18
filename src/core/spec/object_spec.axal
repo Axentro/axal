@@ -1,5 +1,68 @@
-describe "Object"
-  it "creates a new object"
-    true
+describe "Object.new"
+  it "wraps new object"
+    Object.new({"a":"first", "b":"second"}) == {"a":"first", "b":"second"}
+  end
+end
+
+describe "Object.get"
+  it "gets string value for key"
+    Object.get({"a":"first", "b":"second"}, "b") == "second"
+  end
+
+  it "gets number value for key"
+    Object.get({"a":1, "b":2}, "b") == 2
+  end
+
+  it "gets array value for key"
+    Object.get({"a":[1], "b":[2]}, "b") == [2]
+  end
+
+  it "gets object value for key"
+    Object.get({"a":{"c":1}, "b":{"d":2}}, "b") == {"d":2}
+  end 
+
+  it "gets nested object value for key"
+    Object.get({"a":{"c":1}, "b":{"d":2}}, "b.d") == 2
+  end  
+end
+
+describe "Object.put"
+  it "puts a string value for key"
+    Object.put({}, "name", "kings") == {"name":"kings"}
+  end
+
+  it "puts a number value for key"
+    Object.put({}, "name", 1) == {"name":1}
+  end
+
+  it "puts a array value for key"
+    Object.put({}, "name", [1]) == {"name":[1]}
+  end
+
+  it "puts an object value for key"
+    Object.put({}, "name", {"x":1}) == {"name":{"x":1}}
+  end
+
+  it "overwrite value for key"
+    Object.put({"name":{"a":{"b":2}}}, "name.a.b", {"x":1}) == {"name":{"a":{"b":{"x":1}}}}
+  end
+end
+
+describe "Object.keys"
+  it "gets the keys"
+    Object.keys({"a":1,"b":2}) == ["a","b"]
+  end
+end
+
+describe "Object.merge"
+  it "merges two objects"
+    Object.merge({"a":1},{"b":2}) == {"a":1,"b":2}
+  end
+end
+
+describe "Object chaining"
+  it "chains object commands"
+    v = Object.new({}) |> Object.put("a", 1)
+    v == {"a":1}
   end
 end

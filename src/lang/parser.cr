@@ -285,7 +285,17 @@ module Axal
         if value = parse_expr_recursively
           pair[key] = value.not_nil!.as(AST::Expression)
         end
+      elsif nxt.kind == TokenKind::EQUALS && lookahead(2).kind == TokenKind::GREATER_THAN
+        consume(2)
+        consume_if_nxt_is(TokenKind::NEW_LINE)
+        consume
+
+        if value = parse_expr_recursively
+          pair[key] = value.not_nil!.as(AST::Expression)
+        end
       end
+
+      
 
       pair
     end

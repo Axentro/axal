@@ -7,7 +7,7 @@ class SpecRunner
 
   def initialize(@file_or_directory); end
 
-  def run
+  def run(internal_test=false)
     total_specs = 0
     total_passed = 0
     total_failed = 0
@@ -48,6 +48,7 @@ class SpecRunner
       puts taken.colorize(:green)
       puts summary.colorize(:green)
     end
+    internal_test ? total_failed : exit(total_failed)
   end
 
   private def execute_tests(file)

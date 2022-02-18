@@ -1,10 +1,21 @@
 mod Array
+  fn new : array
+    array
+  end
+
   fn size : array
     `:array:.length`
   end
 
   fn at : array, index
-   `:array:[:index:]`
+   `
+     var r = :array:[:index:];
+     if (typeof(r) === 'object') {
+        JSON.stringify(r);
+     } else {
+        r;
+     }
+   `
   end
 
   fn each : array, f
@@ -14,5 +25,27 @@ mod Array
       f(item)
       i = i + 1  
     end
+  end
+
+  fn append : array, i
+  `var n = :array:
+   if (typeof(:i:) == 'undefined'){
+     n.push(':i:')
+   } else {
+     n.push(:i:)
+   }
+   n
+   `
+  end
+
+  fn map : array, f
+    i = 0
+    n = []
+    while i < Array.size(array)
+      item = Array.at(array, i)
+      n = Array.append(n, f(item))
+      i = i + 1  
+    end
+    `JSON.stringify(:n:)`
   end
 end

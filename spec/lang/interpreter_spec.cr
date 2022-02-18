@@ -486,7 +486,7 @@ describe Interpreter do
     it "x" do
       interpreter = Interpreter.new
       interpreter.interpret(ast_from_source("x.axal"))
-      pp interpreter.output
+      # pp interpreter.output
     end
   end
 end

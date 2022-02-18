@@ -750,6 +750,7 @@ describe Parser do
       end
 
       it "generates the expected AST when argument is json" do
+       
       end
     end
 
@@ -807,6 +808,24 @@ describe Parser do
         expected_program.expressions << json
 
         parser = Parser.new(tokens_from_source("json_ok_3.axal"))
+        parser.parse
+
+        parser.ast.should eq(expected_program)
+      end
+
+      it "produces the correct AST for json defintion as Hash" do
+        expected_program = axal_prog.new
+
+        json = axal_json.new(
+          {
+            "name" => axal_str.new("kings").as(AST::Expression),
+            "age"  => axal_num.new(46).as(AST::Expression),
+          }
+        )
+
+        expected_program.expressions << json
+
+        parser = Parser.new(tokens_from_source("json_hash_ok_1.axal"))
         parser.parse
 
         parser.ast.should eq(expected_program)
