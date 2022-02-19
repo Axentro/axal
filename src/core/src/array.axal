@@ -48,4 +48,18 @@ mod Array
     end
     `JSON.stringify(:n:)`
   end
+
+  fn flatten : arrays
+    `[].concat.apply([], :arrays:)` 
+  end
+
+  fn sum : amounts
+   `
+   var total = 0;
+   for (var i in :amounts:) {
+     total += :amounts:[i];
+   }
+   total;
+   `
+  end  
 end

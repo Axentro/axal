@@ -71,6 +71,20 @@ mod Array
     end
     n
   end
+
+  fn flatten : arrays
+  `[].concat.apply([], :arrays:)` 
+end
+
+fn sum : amounts
+ `
+ var total = 0;
+ for (var i in :amounts:) {
+   total += :amounts:[i];
+ }
+ total;
+ `
+end
 end
 
 fn go : i
@@ -90,26 +104,26 @@ end
 
 # Array.map([1,2,3], x) |> println()
 
-fn ba
- `var a = [1,2,{"a":{"n": 1}}]; a;`
-end
+# fn ba
+#  `var a = [1,2,{"a":{"n": 1}}]; a;`
+# end
 
-fn b
- `var a = {"a":{"n": 1}}; a;`
-end
+# fn b
+#  `var a = {"a":{"n": 1}}; a;`
+# end
 
 
-  fn getx : o, item
-    `a = :o:.:item:; a;`
-  end
+#   fn getx : o, item
+#     `a = :o:.:item:; a;`
+#   end
 
-my = {"a":{"b":1}}
+# my = {"a":{"b":1}}
 
-fn to_json : i
-  `JSON.stringify(JSON.parse(JSON.stringify(:i:)))`
-end
+# fn to_json : i
+#   `JSON.stringify(JSON.parse(JSON.stringify(:i:)))`
+# end
 
-getx(my, "a") |> to_json |> println()
+# getx(my, "a") |> to_json |> println()
 
 # println(ba())
 
@@ -121,3 +135,24 @@ getx(my, "a") |> to_json |> println()
 
 #a = ["a","b",[1,2,"a"]]
 #Array.at(a, 2) |> println()
+
+
+
+fn amount : recipient
+  Object.new(recipient) |> Object.get("amount")
+end
+
+fn recipient_amount : txn
+  recipient = Object.new(txn) 
+  |> Object.get("recipients") 
+  |> Array.map(amount) 
+end
+
+Object.new(fget "https://mainnet.axentro.io/api/v1/block/8") 
+|> Object.get("result.block.transactions")
+|> Array.map(recipient_amount)
+|> Array.flatten()
+|> Array.sum()
+|> println()
+
+Array.flatten([[1,2,3],[4,5,6]]) |> println()
